@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0B1020" />
+    <title>HyperScan • Webapp Vulnerability Scanner</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop stop-color='%2322D3EE'/%3E%3Cstop offset='1' stop-color='%23A78BFA'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='%230B1020' d='M0 0h64v64H0z'/%3E%3Cpath fill='url(%23g)' d='M32 6c10 6 18 8 18 8v18c0 13-8 21-18 26C22 53 14 45 14 32V14s8-2 18-8z'/%3E%3Cpath fill='%230B1020' opacity='.85' d='M32 16a2 2 0 0 1 2 2v8h8a2 2 0 1 1 0 4h-8v8a2 2 0 1 1-4 0v-8h-8a2 2 0 1 1 0-4h8v-8a2 2 0 0 1 2-2z'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root{
+        --bg0:#070A14;
+        --bg1:#0B1020;
+        --panel: rgba(20, 27, 52, .82);
+        --panel2: rgba(10, 14, 30, .60);
+        --border: rgba(148, 163, 184, .18);
+        --text:#E5E7EB;
+        --muted:#A7B0C0;
+        --danger:#FB7185;
+        --warn:#FBBF24;
+        --ok:#34D399;
+        --accA:#22D3EE;
+        --accB:#A78BFA;
+        --shadow: 0 18px 45px rgba(0,0,0,.45);
+        --r12: 12px;
+        --r16: 16px;
+      }
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1100px 700px at 15% 10%, rgba(34,211,238,.12), transparent 58%),
+          radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,.12), transparent 60%),
+          radial-gradient(900px 700px at 50% 120%, rgba(34,211,238,.08), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+      }
+      a{ color: #BBD7FF; text-decoration:none; }
+      a:hover{ text-decoration: underline; }
+      .container{
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 18px 48px;
+      }
+      .topbar{
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(180deg, rgba(7,10,20,.78), rgba(7,10,20,.45));
+        border-bottom: 1px solid var(--border);
+      }
+      .topbarInner{
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 14px 18px;
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .brand{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        min-width: 240px;
+      }
+      .brand h1{
+        margin:0;
+        font-size: 14px;
+        letter-spacing: .2px;
+        font-weight: 700;
+      }
+      .brand p{
+        margin:0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .pill{
+        font-size: 12px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        background: rgba(15,23,42,.35);
+        padding: 6px 10px;
+        border-radius: 999px;
+        display:inline-flex;
+        align-items:center;
+        gap: 8px;
+      }
+      .dot{
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(167, 139, 250, .9);
+        box-shadow: 0 0 0 4px rgba(167,139,250,.18);
+      }
+      .grid{
+        display:grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      @media (max-width: 980px){
+        .grid{ grid-template-columns: 1fr; }
+        .brand{ min-width: auto; }
+      }
+      .card{
+        background: linear-gradient(180deg, var(--panel), rgba(20,27,52,.66));
+        border: 1px solid var(--border);
+        border-radius: var(--r16);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+      .cardHeader{
+        display:flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .cardHeader h2{
+        margin:0;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .cardHeader .sub{
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .stack{ display:flex; flex-direction:column; gap: 10px; }
+      label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      input, select, textarea{
+        width:100%;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .22);
+        background: rgba(2,6,23,.35);
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+      }
+      textarea{ resize: vertical; min-height: 84px; }
+      input:focus, select:focus, textarea:focus{
+        border-color: rgba(34, 211, 238, .55);
+        box-shadow: 0 0 0 4px rgba(34,211,238,.12);
+      }
+      .row{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      @media (max-width: 560px){
+        .row{ grid-template-columns: 1fr; }
+      }
+      .btnRow{ display:flex; gap: 10px; flex-wrap: wrap; }
+      button{
+        cursor:pointer;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .18);
+        padding: 10px 12px;
+        font-weight: 600;
+        background: rgba(15, 23, 42, .55);
+        color: var(--text);
+      }
+      button.primary{
+        border: none;
+        background: linear-gradient(90deg, rgba(34,211,238,.95), rgba(167,139,250,.95));
+        color: #06121f;
+      }
+      button.danger{
+        background: rgba(251,113,133,.10);
+        border-color: rgba(251,113,133,.25);
+        color: #FFD1DA;
+      }
+      button:disabled{
+        opacity: .55;
+        cursor: not-allowed;
+      }
+      .alert{
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(2,6,23,.30);
+        padding: 10px 12px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .alert strong{ color: var(--text); }
+      .alert.danger{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.09); color: #FFD1DA; }
+      .alert.ok{ border-color: rgba(52,211,153,.30); background: rgba(52,211,153,.08); color: #CFFAE5; }
+      .alert.warn{ border-color: rgba(251,191,36,.30); background: rgba(251,191,36,.08); color: #FFECC7; }
+      .kbd{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        color: #CFE3FF;
+        border: 1px solid rgba(148, 163, 184, .22);
+        background: rgba(2,6,23,.25);
+        padding: 3px 7px;
+        border-radius: 8px;
+        display:inline-block;
+      }
+      .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .table{
+        width:100%;
+        border-collapse: collapse;
+        overflow:hidden;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(2,6,23,.18);
+      }
+      .table th, .table td{
+        padding: 10px 12px;
+        font-size: 12px;
+        border-bottom: 1px solid rgba(148,163,184,.14);
+        vertical-align: top;
+      }
+      .table th{
+        color: var(--muted);
+        font-weight: 600;
+        text-align:left;
+        background: rgba(2,6,23,.22);
+      }
+      .badge{
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, .18);
+        background: rgba(15,23,42,.35);
+        color: var(--muted);
+        display:inline-flex;
+        align-items:center;
+        gap: 6px;
+      }
+      .badge.ok{ border-color: rgba(52,211,153,.30); color: #CFFAE5; background: rgba(52,211,153,.08); }
+      .badge.warn{ border-color: rgba(251,191,36,.30); color: #FFECC7; background: rgba(251,191,36,.08); }
+      .badge.danger{ border-color: rgba(251,113,133,.35); color: #FFD1DA; background: rgba(251,113,133,.08); }
+      .sep{ height:1px; background: rgba(148,163,184,.14); margin: 12px 0; }
+      pre{
+        margin:0;
+        overflow:auto;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(148,163,184,.16);
+        background: rgba(2,6,23,.30);
+        color: #D7E2F6;
+        font-size: 12px;
+        line-height: 1.35;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const { useEffect, useMemo, useRef, useState } = React;
+      const h = React.createElement;
+
+      function LogoMark({ size }) {
+        const s = size || 28;
+        return h("svg",
+          { width: s, height: s, viewBox: "0 0 64 64", fill: "none", xmlns: "http://www.w3.org/2000/svg" },
+          h("defs", null,
+            h("linearGradient", { id: "hs_g", x1: "0", y1: "0", x2: "1", y2: "0" },
+              h("stop", { offset: "0", stopColor: "#22D3EE" }),
+              h("stop", { offset: "1", stopColor: "#A78BFA" })
+            )
+          ),
+          h("path", { d: "M32 6c10 6 18 8 18 8v18c0 13-8 21-18 26C22 53 14 45 14 32V14s8-2 18-8z", fill: "url(#hs_g)" }),
+          h("path", { d: "M32 16a2 2 0 0 1 2 2v8h8a2 2 0 1 1 0 4h-8v8a2 2 0 1 1-4 0v-8h-8a2 2 0 1 1 0-4h8v-8a2 2 0 0 1 2-2z", fill: "rgba(11,16,32,.92)" })
+        );
+      }
+
+      function statusBadge(status) {
+        const s = String(status || "").toLowerCase();
+        if (["succeeded", "success", "done", "completed"].includes(s)) return { cls: "ok", label: status };
+        if (["failed", "error"].includes(s)) return { cls: "danger", label: status };
+        if (["running", "queued", "started", "in_progress"].includes(s)) return { cls: "warn", label: status };
+        return { cls: "", label: status || "unknown" };
+      }
+
+      function safeJson(x) {
+        try { return JSON.stringify(x, null, 2); } catch { return String(x); }
+      }
+
+      function App() {
+        const [email, setEmail] = useState("");
+        const [password, setPassword] = useState("");
+        const [target, setTarget] = useState("");
+        const [profile, setProfile] = useState("quick");
+        const [scope, setScope] = useState("");
+        const [exclusions, setExclusions] = useState("");
+        const [authorized, setAuthorized] = useState(false);
+        const [scanId, setScanId] = useState("");
+        const [authStatus, setAuthStatus] = useState(null);
+        const [createStatus, setCreateStatus] = useState(null);
+        const [scanData, setScanData] = useState(null);
+        const [streamStatus, setStreamStatus] = useState(null);
+        const [scans, setScans] = useState([]);
+        const [loadingScans, setLoadingScans] = useState(false);
+        const wsRef = useRef(null);
+        const token = useMemo(() => localStorage.getItem("access_token") || "", [authStatus]);
+        const isAuthed = Boolean(token);
+
+        const authHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
+        const reportUrl = (ext) => `/api/reports/${scanId}.${ext}?token=${encodeURIComponent(token)}`;
+
+        const logout = () => {
+          localStorage.removeItem("access_token");
+          setAuthStatus({ kind: "warn", text: "Logged out (token cleared from this browser)." });
+          setScanData(null);
+          setStreamStatus(null);
+          setScans([]);
+        };
+
+        const register = async () => {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          setAuthStatus(res.ok
+            ? { kind: "ok", text: `Registered ${data.email}. You can login now.` }
+            : { kind: "danger", text: `Register error: ${safeJson(data)}` }
+          );
+        };
+
+        const login = async () => {
+          const form = new URLSearchParams();
+          form.append("username", email);
+          form.append("password", password);
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: form
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem("access_token", data.access_token);
+            setAuthStatus({ kind: "ok", text: "Logged in. Your token is stored locally in this browser." });
+          } else {
+            setAuthStatus({ kind: "danger", text: `Login error: ${safeJson(data)}` });
+          }
+        };
+
+        const createScan = async () => {
+          setCreateStatus(null);
+          const res = await fetch("/api/scans", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({
+              target_url: target,
+              profile,
+              authorization_confirmed: authorized,
+              in_scope_urls: scope.split(",").map(s => s.trim()).filter(Boolean),
+              exclusions: exclusions.split(",").map(s => s.trim()).filter(Boolean)
+            })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setCreateStatus({ kind: "ok", text: `Created scan #${data.id}.` });
+            setScanId(String(data.id));
+            setScanData(null);
+            refreshScans();
+          } else {
+            setCreateStatus({ kind: "danger", text: `Create error: ${safeJson(data)}` });
+          }
+        };
+
+        const fetchScan = async () => {
+          const res = await fetch(`/api/scans/${scanId}`, { headers: authHeaders() });
+          const data = await res.json();
+          setScanData(data);
+        };
+
+        const watchScan = () => {
+          if (wsRef.current) wsRef.current.close();
+          const proto = location.protocol === "https:" ? "wss" : "ws";
+          const ws = new WebSocket(`${proto}://${location.host}/api/scans/ws/${scanId}?token=${encodeURIComponent(token)}`);
+          wsRef.current = ws;
+          ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.error) {
+              setStreamStatus({ kind: "danger", text: data.error });
+              return;
+            }
+            setStreamStatus({ kind: "warn", text: `Scan #${data.id}: ${data.status} (${data.updated_at})` });
+            refreshScans(true);
+          };
+          ws.onerror = () => setStreamStatus({ kind: "danger", text: "WebSocket error." });
+        };
+
+        const refreshScans = async (silent) => {
+          if (!isAuthed) return;
+          if (!silent) setLoadingScans(true);
+          try {
+            const res = await fetch("/api/scans", { headers: authHeaders() });
+            const data = await res.json();
+            if (res.ok) setScans(Array.isArray(data) ? data : []);
+          } finally {
+            if (!silent) setLoadingScans(false);
+          }
+        };
+
+        useEffect(() => {
+          refreshScans();
+          return () => { if (wsRef.current) wsRef.current.close(); };
+        }, [isAuthed]);
+
+        const canSubmit = isAuthed && target.trim() && authorized;
+
+        return h("div", null,
+          h("div", { className: "topbar" },
+            h("div", { className: "topbarInner" },
+              h("div", { className: "brand" },
+                h(LogoMark, { size: 30 }),
+                h("div", null,
+                  h("h1", null, "HyperScan"),
+                  h("p", null, "Authorized webapp vulnerability scanning dashboard")
+                )
+              ),
+              h("div", { className: "pill", title: isAuthed ? "Authenticated" : "Not authenticated" },
+                h("span", { className: "dot", style: { background: isAuthed ? "rgba(52,211,153,.95)" : "rgba(251,113,133,.90)", boxShadow: isAuthed ? "0 0 0 4px rgba(52,211,153,.18)" : "0 0 0 4px rgba(251,113,133,.16)" } }),
+                h("span", null, isAuthed ? "Token loaded" : "Not logged in"),
+                isAuthed ? h("span", { className: "kbd" }, "Bearer") : null
+              )
+            )
+          ),
+
+          h("div", { className: "container" },
+            h("div", { className: "alert warn" },
+              h("strong", null, "Ethical use only."),
+              " Scan only targets you own or have explicit written permission to test. This UI enforces an authorization checkbox, but you are responsible for lawful use."
+            ),
+
+            h("div", { className: "grid" },
+              h("div", { className: "stack" },
+                h("div", { className: "card" },
+                  h("div", { className: "cardHeader" },
+                    h("div", null,
+                      h("h2", null, "Start scan"),
+                      h("div", { className: "sub" }, "Create a new scan job. Use Quick for passive checks; Full/Custom may run active heuristics and external adapters if installed.")
+                    ),
+                    h("div", { className: "badge" }, "POST ", h("span", { className: "mono" }, "/api/scans"))
+                  ),
+                  h("div", { className: "row" },
+                    h("div", null,
+                      h("label", null, "Target URL"),
+                      h("input", { value: target, onChange: e => setTarget(e.target.value), placeholder: "https://example.com" })
+                    ),
+                    h("div", null,
+                      h("label", null, "Profile"),
+                      h("select", { value: profile, onChange: e => setProfile(e.target.value) },
+                        h("option", { value: "quick" }, "quick (passive)"),
+                        h("option", { value: "full" }, "full (active)"),
+                        h("option", { value: "custom" }, "custom")
+                      )
+                    )
+                  ),
+                  h("div", { className: "row" },
+                    h("div", null,
+                      h("label", null, "In-scope URLs (comma separated)"),
+                      h("textarea", { value: scope, onChange: e => setScope(e.target.value), placeholder: "https://example.com/app, https://example.com/api" })
+                    ),
+                    h("div", null,
+                      h("label", null, "Exclusions (comma separated)"),
+                      h("textarea", { value: exclusions, onChange: e => setExclusions(e.target.value), placeholder: "/logout, /admin/delete" })
+                    )
+                  ),
+                  h("div", { className: "alert" },
+                    h("label", { style: { display: "flex", alignItems: "center", gap: "10px", margin: 0, color: "var(--text)" } },
+                      h("input", { type: "checkbox", checked: authorized, onChange: e => setAuthorized(e.target.checked), style: { width: "18px", height: "18px", margin: 0 } }),
+                      h("span", null, "I confirm I have explicit written authorization for this target.")
+                    )
+                  ),
+                  h("div", { className: "btnRow" },
+                    h("button", { className: "primary", onClick: createScan, disabled: !canSubmit }, "Submit scan"),
+                    h("button", { onClick: () => refreshScans(false), disabled: !isAuthed }, loadingScans ? "Refreshing…" : "Refresh history"),
+                    h("button", { className: "danger", onClick: logout, disabled: !isAuthed }, "Logout")
+                  ),
+                  createStatus ? h("div", { className: `alert ${createStatus.kind || ""}` }, createStatus.text) : null,
+                  !isAuthed ? h("div", { className: "alert danger" }, "Login required before you can create scans.") : null,
+                  isAuthed && !authorized ? h("div", { className: "alert warn" }, "Authorization checkbox is required to submit a scan.") : null
+                ),
+
+                h("div", { className: "card" },
+                  h("div", { className: "cardHeader" },
+                    h("div", null,
+                      h("h2", null, "Scan details"),
+                      h("div", { className: "sub" }, "Load a scan by ID, watch live status over WebSocket, and open reports.")
+                    ),
+                    h("div", { className: "badge" }, "GET ", h("span", { className: "mono" }, "/api/scans/{id}"))
+                  ),
+                  h("div", { className: "row" },
+                    h("div", null,
+                      h("label", null, "Scan ID"),
+                      h("input", { value: scanId, onChange: e => setScanId(e.target.value), placeholder: "e.g. 1" })
+                    ),
+                    h("div", null,
+                      h("label", null, "Reports"),
+                      h("div", { className: "btnRow" },
+                        h("button", { onClick: fetchScan, disabled: !isAuthed || !scanId.trim() }, "Load JSON"),
+                        h("button", { onClick: watchScan, disabled: !isAuthed || !scanId.trim() }, "Watch live")
+                      )
+                    )
+                  ),
+                  streamStatus ? h("div", { className: `alert ${streamStatus.kind || ""}` }, streamStatus.text) : null,
+                  scanId ? h("div", { className: "btnRow" },
+                    h("a", { className: "badge", href: reportUrl("json"), target: "_blank", rel: "noreferrer" }, "Open JSON"),
+                    h("a", { className: "badge", href: reportUrl("html"), target: "_blank", rel: "noreferrer" }, "Open HTML"),
+                    h("a", { className: "badge", href: reportUrl("pdf"), target: "_blank", rel: "noreferrer" }, "Open PDF")
+                  ) : null,
+                  h("div", { className: "sep" }),
+                  h("div", { className: "stack" },
+                    h("div", { className: "badge" }, "Raw response preview"),
+                    h("pre", null, scanData ? safeJson(scanData) : "{\n  \"hint\": \"Load a scan to view its JSON response here.\"\n}")
+                  )
+                )
+              ),
+
+              h("div", { className: "stack" },
+                h("div", { className: "card" },
+                  h("div", { className: "cardHeader" },
+                    h("div", null,
+                      h("h2", null, "Authentication"),
+                      h("div", { className: "sub" }, "Create an account and login to get a JWT. The token stays in localStorage on this device.")
+                    ),
+                    h("div", { className: "badge" }, "POST ", h("span", { className: "mono" }, "/api/auth/login"))
+                  ),
+                  h("div", { className: "stack" },
+                    h("div", null,
+                      h("label", null, "Email"),
+                      h("input", { value: email, onChange: e => setEmail(e.target.value), placeholder: "you@example.com" })
+                    ),
+                    h("div", null,
+                      h("label", null, "Password"),
+                      h("input", { value: password, onChange: e => setPassword(e.target.value), type: "password", placeholder: "••••••••" })
+                    ),
+                    h("div", { className: "btnRow" },
+                      h("button", { onClick: register, disabled: !email.trim() || !password }, "Register"),
+                      h("button", { className: "primary", onClick: login, disabled: !email.trim() || !password }, "Login")
+                    ),
+                    authStatus ? h("div", { className: `alert ${authStatus.kind || ""}` }, authStatus.text) : null
+                  )
+                ),
+
+                h("div", { className: "card" },
+                  h("div", { className: "cardHeader" },
+                    h("div", null,
+                      h("h2", null, "Scan history"),
+                      h("div", { className: "sub" }, "Your recent scans. Click a row to load that scan ID.")
+                    ),
+                    h("div", { className: "badge" }, "GET ", h("span", { className: "mono" }, "/api/scans"))
+                  ),
+                  !isAuthed ? h("div", { className: "alert danger" }, "Login to view your scan history.") : null,
+                  isAuthed && scans.length === 0 ? h("div", { className: "alert" }, "No scans yet. Create one on the left.") : null,
+                  isAuthed && scans.length > 0 ? h("table", { className: "table" },
+                    h("thead", null,
+                      h("tr", null,
+                        h("th", null, "ID"),
+                        h("th", null, "Target"),
+                        h("th", null, "Status"),
+                        h("th", null, "Updated")
+                      )
+                    ),
+                    h("tbody", null,
+                      scans.slice(0, 15).map(s => {
+                        const b = statusBadge(s.status);
+                        return h("tr", {
+                          key: s.id,
+                          style: { cursor: "pointer" },
+                          onClick: () => { setScanId(String(s.id)); setStreamStatus(null); setScanData(null); }
+                        },
+                          h("td", null, h("span", { className: "kbd" }, String(s.id))),
+                          h("td", null, h("span", { className: "mono" }, String(s.target_url || ""))),
+                          h("td", null, h("span", { className: `badge ${b.cls}` }, b.label)),
+                          h("td", null, h("span", { className: "mono", style: { color: "var(--muted)" } }, String(s.updated_at || "")))
+                        );
+                      })
+                    )
+                  ) : null
+                ),
+
+                h("div", { className: "alert" },
+                  h("strong", null, "Tip:"),
+                  " open API docs at ",
+                  h("a", { href: "/docs", target: "_blank", rel: "noreferrer" }, "/docs"),
+                  " and keep scan concurrency reasonable to avoid accidental DoS."
+                )
+              )
+            )
+          )
+        );
+      }
+      ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+import httpx
+
+from app.scanner.base import BaseModule
+from app.schemas.scan import Finding
+
+
+class ReflectedXSSModule(BaseModule):
+    name = "reflected_xss"
+    payload = "<xss-scan-probe>"
+
+    def _inject_payload(self, url: str) -> str | None:
+        parsed = urlparse(url)
+        params = parse_qsl(parsed.query, keep_blank_values=True)
+        if not params:
+            return None
+        tampered = [(k, self.payload) for k, _ in params]
+        return urlunparse(parsed._replace(query=urlencode(tampered)))
+
+    async def run(
+        self,
+        target_url: str,
+        in_scope_urls: list[str] | None = None,
+        exclusions: list[str] | None = None,
+        discovered_endpoints: list[str] | None = None,
+    ) -> list[Finding]:
+        _ = in_scope_urls
+        _ = exclusions
+        candidates = [target_url] + (discovered_endpoints or [])
+        findings: list[Finding] = []
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            for candidate in candidates:
+                attack_url = self._inject_payload(candidate)
+                if not attack_url:
+                    continue
+                try:
+                    response = await client.get(attack_url)
+                except Exception:  # noqa: BLE001
+                    continue
+                if self.payload in response.text:
+                    findings.append(
+                        Finding(
+                            module=self.name,
+                            title="Potential reflected XSS",
+                            severity="high",
+                            description=(
+                                "Payload was reflected in response. This may indicate reflected XSS."
+                            ),
+                            evidence={"attack_url": attack_url, "reflected_payload": self.payload},
+                            remediation=(
+                                "Apply output encoding and server-side validation for user input."
+                            ),
+                        )
+                    )
+        return findings
