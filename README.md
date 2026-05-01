@@ -1,61 +1,148 @@
-# Multitool Webapp Vulnerability Scanner (MVP Foundation)
+# 🔐 Multitool Web Application Vulnerability Scanner (MVP Foundation)
 
-This repository contains a Phase-1 foundation for an authorized web vulnerability scanner platform.
+A modular, extensible **web vulnerability scanning platform** designed for authorized security testing. This repository provides a **Phase-1 foundation** for building a scalable, multi-engine security assessment tool with asynchronous processing and modern UI support.
 
-## Important Legal/Ethical Notice
+---
 
-Only scan targets you own or have explicit written permission to test. Unauthorized scanning may be illegal.
+## ⚠️ Legal & Ethical Disclaimer
 
-## Implemented in this bootstrap
+This tool is intended **strictly for authorized security testing**.
 
-- FastAPI backend with initial scan APIs:
-  - `POST /api/auth/register`
-  - `POST /api/auth/login`
-  - `POST /api/scans`
-  - `GET /api/scans`
-  - `GET /api/scans/{scan_id}`
-  - `GET /api/scans/{scan_id}/stream`
-  - `WS /api/scans/ws/{scan_id}?token=<jwt>`
-- Report APIs:
-  - `GET /api/reports/{scan_id}.json`
-  - `GET /api/reports/{scan_id}.html`
-  - `GET /api/reports/{scan_id}.pdf`
-- Celery worker for asynchronous scan jobs.
-- PostgreSQL persistence for scan jobs/results.
-- Redis broker/backend for queueing.
-- Modular scanner engine with initial passive checks:
-  - Scope-aware crawler for endpoint discovery
-  - Security headers analysis
-  - Basic CORS misconfiguration detection
-- Basic active checks in full/custom profile:
-  - Reflected XSS reflection heuristic
-  - Error-based SQLi signature heuristic
-- Multitool orchestration scaffold:
-  - External adapter execution for `nuclei`, `nikto`, `sqlmap` when installed
-- Per-user ownership and token-based authentication for scan/report access.
-- Role and quota support:
-  - `admin` role bypasses quota
-  - user daily scan quota enforcement
-- Frontend UI:
-  - **Vite + React + Tailwind** app in `frontend/`
-  - Connects to the backend via `/api/*` (proxied to `http://localhost:8000` in dev) and WebSocket status updates
-- Docker Compose for local development.
+* ✅ Only scan systems you **own** or have **explicit written permission** to test
+* ❌ Unauthorized scanning may violate laws such as the IT Act, CFAA, or equivalent regulations
+* ⚖️ You are solely responsible for how you use this software
 
-## Quick Start
+---
 
-### Backend (API + worker)
+## 🧩 Core Features
 
-1. Start services:
-   - `docker compose up --build`
-2. Open API docs:
-   - <http://localhost:8000/docs>
+### 🚀 Backend (FastAPI)
 
-### Frontend (dashboard UI)
+* RESTful API with JWT-based authentication
+* Scan lifecycle management
+* Real-time scan updates via WebSocket
+* Role-based access control and quota enforcement
 
-Prereqs:
-- Node.js LTS (includes `npm`/`npx`)
+#### 🔑 Authentication Endpoints
 
-Run the UI dev server:
+* `POST /api/auth/register` — Create account
+* `POST /api/auth/login` — Obtain access token
+
+#### 🛠 Scan Management
+
+* `POST /api/scans` — Initiate a scan
+* `GET /api/scans` — List user scans
+* `GET /api/scans/{scan_id}` — Scan details
+* `GET /api/scans/{scan_id}/stream` — Live scan updates
+* `WS /api/scans/ws/{scan_id}?token=<jwt>` — WebSocket stream
+
+#### 📊 Reports
+
+* `GET /api/reports/{scan_id}.json`
+* `GET /api/reports/{scan_id}.html`
+* `GET /api/reports/{scan_id}.pdf`
+
+---
+
+### ⚙️ Asynchronous Processing
+
+* **Celery worker** for background scan execution
+* **Redis** as message broker & task backend
+* Ensures non-blocking scan operations
+
+---
+
+### 🗄️ Persistence Layer
+
+* **PostgreSQL** for:
+
+  * Scan metadata
+  * Results storage
+  * User management
+
+---
+
+### 🔍 Scanner Engine (Modular Design)
+
+#### 🧠 Passive Reconnaissance
+
+* Scope-aware crawler (endpoint discovery)
+* HTTP security headers analysis
+* Basic CORS misconfiguration detection
+
+#### ⚡ Active Testing (Profile-Based)
+
+* Reflected XSS detection (heuristic-based)
+* Error-based SQL Injection signatures
+
+---
+
+### 🔗 External Tool Integration (Multitool Orchestration)
+
+Supports optional adapters for:
+
+* `nuclei`
+* `nikto`
+* `sqlmap`
+
+> Tools are executed only if installed and available in the environment.
+
+---
+
+### 👥 Access Control & Quotas
+
+* Per-user scan ownership
+* JWT-secured access to scans & reports
+* Role system:
+
+  * `admin` → unlimited scans
+  * `user` → daily scan quota enforced
+
+---
+
+### 🖥 Frontend (Dashboard UI)
+
+* Built with **Vite + React + Tailwind CSS**
+* Features:
+
+  * Scan creation & monitoring
+  * Real-time updates via WebSocket
+  * API integration via `/api/*`
+
+---
+
+### 🐳 Containerized Development
+
+* Docker Compose setup for:
+
+  * Backend API
+  * Worker
+  * Redis
+  * PostgreSQL
+
+---
+
+## ⚡ Quick Start
+
+### 🐳 Backend Setup
+
+```bash
+docker compose up --build
+```
+
+Access API docs:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+### 💻 Frontend Setup
+
+**Prerequisites:**
+
+* Node.js (LTS)
 
 ```bash
 cd frontend
@@ -64,24 +151,40 @@ npm run dev
 ```
 
 Open:
-- <http://localhost:5173>
 
-Notes:
-- The dev server proxies `/api/*` → `http://localhost:8000` (see `frontend/vite.config.ts`).
+```
+http://localhost:5173
+```
 
-### API usage (optional)
+> Dev server proxies `/api/*` → `http://localhost:8000`
 
-Register:
-- `POST /api/auth/register` with email/password
+---
 
-Login:
-- `POST /api/auth/login` (OAuth2 form fields `username`, `password`)
+## 🔌 API Usage Example
 
-Use returned bearer token:
-- `Authorization: Bearer <access_token>`
+### 📝 Register
 
-Create a scan:
-- `POST /api/scans` with:
+```
+POST /api/auth/register
+```
+
+### 🔐 Login
+
+```
+POST /api/auth/login
+```
+
+(OAuth2 form fields: `username`, `password`)
+
+### 🪪 Authorization Header
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+### ▶️ Create Scan
 
 ```json
 {
@@ -93,18 +196,67 @@ Create a scan:
 }
 ```
 
-Poll result:
-- `GET /api/scans/{id}`
+---
 
-Open report links:
-- `/api/reports/{id}.json`
-- `/api/reports/{id}.html`
-- `/api/reports/{id}.pdf`
+### 📡 Monitor Scan
 
-## Suggested Next Steps
+```
+GET /api/scans/{id}
+```
 
-- Add authentication-aware crawling for logged-in application areas.
-- Add PDF export and richer HTML report templates.
-- Add org/team-level authorization workflows.
-- Serve the built frontend (`frontend/dist`) from the backend or behind a reverse proxy (for a single origin in production).
-- Expand external tool parsing into normalized finding objects.
+---
+
+### 📄 Retrieve Reports
+
+* `/api/reports/{id}.json`
+* `/api/reports/{id}.html`
+* `/api/reports/{id}.pdf`
+
+---
+
+## 🧱 Architecture Overview
+
+```
+[ React Frontend ]
+        ↓
+[ FastAPI Backend ] ←→ [ PostgreSQL ]
+        ↓
+[ Celery Worker ] ←→ [ Redis ]
+        ↓
+[ Scanner Engine + External Tools ]
+```
+
+---
+
+## 🚧 Roadmap / Next Steps
+
+* 🔐 Authentication-aware crawling (session handling)
+* 📄 Advanced reporting (PDF + rich HTML templates)
+* 🏢 Organization/team-based access control
+* 🌐 Production deployment (reverse proxy + unified origin)
+* 🔄 Normalize findings from external tools into a unified schema
+* 🧪 Add more vulnerability checks (SSRF, IDOR, CSP bypass, etc.)
+
+---
+
+## 🤝 Contribution Guidelines
+
+Contributions are welcome. Please:
+
+* Follow clean modular architecture
+* Add tests where applicable
+* Document new features clearly
+
+---
+
+## 📜 License
+
+Specify your license here (e.g., MIT, Apache 2.0)
+
+---
+
+## 🛡️ Final Note
+
+This project is a **foundation**, not a full-fledged scanner yet. It is designed to evolve into a **comprehensive, extensible cybersecurity platform**.
+
+Build responsibly.
