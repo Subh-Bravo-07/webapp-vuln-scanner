@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 from shutil import which
 
 
@@ -61,24 +62,25 @@ def run_sqlmap_scan(target_url: str, timeout_sec: int = 90) -> dict[str, str]:
     if not executable:
         return {"tool": "sqlmap", "status": "not_installed", "output": ""}
     try:
-        result = subprocess.run(  # noqa: S603
-            [
-                executable,
-                "-u",
-                target_url,
-                "--batch",
-                "--level",
-                "1",
-                "--risk",
-                "1",
-                "--output-dir",
-                ".",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout_sec,
-            check=False,
-        )
+        with tempfile.TemporaryDirectory(prefix="hyperscan-sqlmap-") as output_dir:
+            result = subprocess.run(  # noqa: S603
+                [
+                    executable,
+                    "-u",
+                    target_url,
+                    "--batch",
+                    "--level",
+                    "1",
+                    "--risk",
+                    "1",
+                    "--output-dir",
+                    output_dir,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+                check=False,
+            )
         output = (result.stdout or result.stderr).strip()
         return {"tool": "sqlmap", "status": "executed", "output": output[:4000]}
     except Exception as exc:  # noqa: BLE001

@@ -26,7 +26,11 @@ def create_scan(
     current_user: User = Depends(get_current_user),
 ) -> ScanJob:
     target_url = str(payload.target_url)
-    validate_target_is_safe(target_url)
+    try:
+        validate_target_is_safe(target_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     if current_user.role != "admin":
         now = datetime.now(timezone.utc)
         day_start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc).replace(tzinfo=None)

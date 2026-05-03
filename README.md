@@ -1,148 +1,143 @@
-# 🔐 Multitool Web Application Vulnerability Scanner (MVP Foundation)
+# HyperScan - Multitool Web Application Vulnerability Scanner
 
-A modular, extensible **web vulnerability scanning platform** designed for authorized security testing. This repository provides a **Phase-1 foundation** for building a scalable, multi-engine security assessment tool with asynchronous processing and modern UI support.
+HyperScan is a modular web application vulnerability scanner for authorized security testing. It combines a FastAPI backend, Celery workers, Redis, PostgreSQL, and a React dashboard into a Phase-1 scanning platform that can grow into a broader OWASP-focused assessment tool.
 
----
+This project is intentionally built as a foundation: it supports account-based scan ownership, scoped target submission, asynchronous scan jobs, live status updates, passive checks, basic active heuristics, optional external tool orchestration, and report exports.
 
-## ⚠️ Legal & Ethical Disclaimer
+## Legal And Ethical Use
 
-This tool is intended **strictly for authorized security testing**.
+Use this tool only on systems you own or have explicit written permission to test.
 
-* ✅ Only scan systems you **own** or have **explicit written permission** to test
-* ❌ Unauthorized scanning may violate laws such as the IT Act, CFAA, or equivalent regulations
-* ⚖️ You are solely responsible for how you use this software
+- Unauthorized scanning may violate laws such as the CFAA, IT Act, or equivalent local regulations.
+- Users are responsible for scan targets, scope, timing, and authorization.
+- The scanner includes target validation and quotas, but those controls do not replace legal permission.
+- Do not use this project for exploitation, harassment, service disruption, or unauthorized reconnaissance.
 
----
+## Current Features
 
-## 🧩 Core Features
+### Backend
 
-### 🚀 Backend (FastAPI)
+- FastAPI REST API with automatic OpenAPI docs.
+- JWT authentication with register/login endpoints.
+- Per-user scan ownership.
+- Daily scan quotas for regular users.
+- Admin role support for unlimited scan creation.
+- Scan lifecycle tracking: queued, running, completed, failed.
+- Celery worker execution with Redis broker/result backend.
+- PostgreSQL persistence through SQLAlchemy models.
+- Server-sent events and WebSocket scan status streaming.
 
-* RESTful API with JWT-based authentication
-* Scan lifecycle management
-* Real-time scan updates via WebSocket
-* Role-based access control and quota enforcement
+### Frontend
 
-#### 🔑 Authentication Endpoints
+- Vite + React + TypeScript dashboard.
+- Tailwind CSS styling.
+- Register/login form.
+- Authorized target submission.
+- Profile descriptions for quick, full, and custom scan modes.
+- Visible module coverage for passive and full scan profiles.
+- Scan history table.
+- Scan details and raw JSON preview.
+- In-dashboard findings view with severity summary, module, title, description, and remediation.
+- WebSocket-based live scan status.
+- Report links for JSON, HTML, and PDF exports.
 
-* `POST /api/auth/register` — Create account
-* `POST /api/auth/login` — Obtain access token
+### Scanner Engine
 
-#### 🛠 Scan Management
+The engine runs a crawler first, extracts discovered in-scope endpoints, then dispatches passive or active modules depending on the selected scan profile.
 
-* `POST /api/scans` — Initiate a scan
-* `GET /api/scans` — List user scans
-* `GET /api/scans/{scan_id}` — Scan details
-* `GET /api/scans/{scan_id}/stream` — Live scan updates
-* `WS /api/scans/ws/{scan_id}?token=<jwt>` — WebSocket stream
+Implemented modules:
 
-#### 📊 Reports
+- Scope-aware crawler with link discovery, form discovery, and basic JavaScript endpoint extraction.
+- HTTP security header checks.
+- CORS misconfiguration heuristic.
+- Technology fingerprinting from response headers and HTML markers.
+- Sensitive data exposure heuristic for emails, JWTs, AWS access key IDs, private key markers, and API-key-like assignments.
+- Passive CSRF form heuristic for state-changing forms without recognizable CSRF token fields.
+- Reflected XSS heuristic for query parameters.
+- Error-based SQL injection signature heuristic.
+- Optional external tool adapters for `nuclei`, `nikto`, and `sqlmap`.
 
-* `GET /api/reports/{scan_id}.json`
-* `GET /api/reports/{scan_id}.html`
-* `GET /api/reports/{scan_id}.pdf`
+### Scan Profiles
 
----
+- `quick`: crawler + passive modules.
+- `full`: crawler + passive modules + active heuristics + external tool adapters.
+- `custom`: currently behaves like `full`; intended for future user-selected modules.
 
-### ⚙️ Asynchronous Processing
+### Reports
 
-* **Celery worker** for background scan execution
-* **Redis** as message broker & task backend
-* Ensures non-blocking scan operations
+- JSON report: `/api/reports/{scan_id}.json`
+- HTML report: `/api/reports/{scan_id}.html`
+- PDF report: `/api/reports/{scan_id}.pdf`
 
----
+Reports include severity summary, scan metadata, findings, evidence, and remediation text. HTML report output escapes scanner-controlled content before rendering.
 
-### 🗄️ Persistence Layer
+The frontend can also parse a loaded scan response and display findings directly in the dashboard, while keeping the raw JSON response available for troubleshooting.
 
-* **PostgreSQL** for:
+## Architecture
 
-  * Scan metadata
-  * Results storage
-  * User management
+```text
+[ React Dashboard ]
+        |
+        v
+[ FastAPI Backend ] <--> [ PostgreSQL ]
+        |
+        v
+[ Celery Worker ] <--> [ Redis ]
+        |
+        v
+[ Modular Scanner Engine ]
+        |
+        +--> Built-in modules
+        +--> Optional external tools: nuclei, nikto, sqlmap
+```
 
----
+## Project Structure
 
-### 🔍 Scanner Engine (Modular Design)
+```text
+.
+├── backend/
+│   ├── app/
+│   │   ├── api/              # Auth, scan, and report routes
+│   │   ├── core/             # Config, security, target validation
+│   │   ├── db/               # SQLAlchemy session/base
+│   │   ├── models/           # User and scan models
+│   │   ├── scanner/          # Engine and modules
+│   │   ├── schemas/          # Pydantic request/response models
+│   │   └── tasks/            # Celery worker task
+│   ├── frontend/             # Static fallback frontend served by backend image
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.ts
+├── docker-compose.yml
+└── README.md
+```
 
-#### 🧠 Passive Reconnaissance
+## Quick Start
 
-* Scope-aware crawler (endpoint discovery)
-* HTTP security headers analysis
-* Basic CORS misconfiguration detection
+### Docker Compose
 
-#### ⚡ Active Testing (Profile-Based)
-
-* Reflected XSS detection (heuristic-based)
-* Error-based SQL Injection signatures
-
----
-
-### 🔗 External Tool Integration (Multitool Orchestration)
-
-Supports optional adapters for:
-
-* `nuclei`
-* `nikto`
-* `sqlmap`
-
-> Tools are executed only if installed and available in the environment.
-
----
-
-### 👥 Access Control & Quotas
-
-* Per-user scan ownership
-* JWT-secured access to scans & reports
-* Role system:
-
-  * `admin` → unlimited scans
-  * `user` → daily scan quota enforced
-
----
-
-### 🖥 Frontend (Dashboard UI)
-
-* Built with **Vite + React + Tailwind CSS**
-* Features:
-
-  * Scan creation & monitoring
-  * Real-time updates via WebSocket
-  * API integration via `/api/*`
-
----
-
-### 🐳 Containerized Development
-
-* Docker Compose setup for:
-
-  * Backend API
-  * Worker
-  * Redis
-  * PostgreSQL
-
----
-
-## ⚡ Quick Start
-
-### 🐳 Backend Setup
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Access API docs:
+Services:
 
-```
-http://localhost:8000/docs
-```
+- API: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
 
----
+The API and worker read environment values from `backend/.env.example` in the current compose setup.
 
-### 💻 Frontend Setup
+### Frontend Development Server
 
-**Prerequisites:**
-
-* Node.js (LTS)
+In a separate terminal:
 
 ```bash
 cd frontend
@@ -152,39 +147,55 @@ npm run dev
 
 Open:
 
-```
+```text
 http://localhost:5173
 ```
 
-> Dev server proxies `/api/*` → `http://localhost:8000`
+The Vite dev server proxies `/api/*` requests to `http://localhost:8000`.
 
----
+## API Examples
 
-## 🔌 API Usage Example
+### Register
 
-### 📝 Register
-
-```
+```http
 POST /api/auth/register
+Content-Type: application/json
 ```
 
-### 🔐 Login
-
+```json
+{
+  "email": "user@example.com",
+  "password": "change-me-securely"
+}
 ```
+
+### Login
+
+```http
 POST /api/auth/login
+Content-Type: application/x-www-form-urlencoded
 ```
 
-(OAuth2 form fields: `username`, `password`)
+OAuth2 form fields:
 
-### 🪪 Authorization Header
-
+```text
+username=user@example.com
+password=change-me-securely
 ```
+
+Use the returned access token as:
+
+```http
 Authorization: Bearer <access_token>
 ```
 
----
+### Create Scan
 
-### ▶️ Create Scan
+```http
+POST /api/scans
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -196,67 +207,162 @@ Authorization: Bearer <access_token>
 }
 ```
 
----
+### List Scans
 
-### 📡 Monitor Scan
-
-```
-GET /api/scans/{id}
-```
-
----
-
-### 📄 Retrieve Reports
-
-* `/api/reports/{id}.json`
-* `/api/reports/{id}.html`
-* `/api/reports/{id}.pdf`
-
----
-
-## 🧱 Architecture Overview
-
-```
-[ React Frontend ]
-        ↓
-[ FastAPI Backend ] ←→ [ PostgreSQL ]
-        ↓
-[ Celery Worker ] ←→ [ Redis ]
-        ↓
-[ Scanner Engine + External Tools ]
+```http
+GET /api/scans
+Authorization: Bearer <access_token>
 ```
 
----
+### Get Scan Details
 
-## 🚧 Roadmap / Next Steps
+```http
+GET /api/scans/{scan_id}
+Authorization: Bearer <access_token>
+```
 
-* 🔐 Authentication-aware crawling (session handling)
-* 📄 Advanced reporting (PDF + rich HTML templates)
-* 🏢 Organization/team-based access control
-* 🌐 Production deployment (reverse proxy + unified origin)
-* 🔄 Normalize findings from external tools into a unified schema
-* 🧪 Add more vulnerability checks (SSRF, IDOR, CSP bypass, etc.)
+### Stream Scan Status
 
----
+Server-sent events:
 
-## 🤝 Contribution Guidelines
+```http
+GET /api/scans/{scan_id}/stream
+Authorization: Bearer <access_token>
+```
 
-Contributions are welcome. Please:
+WebSocket:
 
-* Follow clean modular architecture
-* Add tests where applicable
-* Document new features clearly
+```text
+ws://localhost:8000/api/scans/ws/{scan_id}?token=<access_token>
+```
 
----
+### Retrieve Reports
 
-## 📜 License
+```http
+GET /api/reports/{scan_id}.json
+GET /api/reports/{scan_id}.html
+GET /api/reports/{scan_id}.pdf
+```
 
-Specify your license here (e.g., MIT, Apache 2.0)
+Reports require either a bearer token or a `?token=<access_token>` query parameter.
 
----
+## Target Validation And Scope Controls
 
-## 🛡️ Final Note
+The API requires `authorization_confirmed: true` before creating a scan.
 
-This project is a **foundation**, not a full-fledged scanner yet. It is designed to evolve into a **comprehensive, extensible cybersecurity platform**.
+Target validation blocks:
 
-Build responsibly.
+- Missing or invalid hostnames.
+- `localhost`.
+- `.local` hostnames.
+- Targets resolving to private, loopback, link-local, multicast, reserved, or unspecified IP addresses.
+
+In-scope URLs must share the same hostname as the primary target. Module-level checks also avoid cross-host discovered URLs.
+
+## External Tools
+
+The external tool module detects and runs supported tools only when they are installed in the worker environment.
+
+Supported adapters:
+
+- `nuclei`
+- `nikto`
+- `sqlmap`
+
+Notes:
+
+- Missing tools are reported as `not_installed`.
+- `sqlmap` writes into a temporary per-run directory.
+- External tool output is captured and truncated before being stored in findings.
+
+## Development Checks
+
+Backend syntax check:
+
+```bash
+cd backend
+python -m compileall app tests
+```
+
+Backend tests:
+
+```bash
+cd backend
+python -m pytest
+```
+
+Frontend type/build check:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Implemented Safety Hardening
+
+- JWT-protected scan and report access.
+- Per-user scan ownership checks.
+- Daily user scan quotas.
+- Target validation for common SSRF/local-network abuse paths.
+- Same-host scope enforcement for submitted in-scope URLs.
+- Escaped HTML report rendering.
+- Temporary output directory for `sqlmap`.
+
+## Roadmap
+
+Near-term:
+
+- Module selection for the `custom` profile.
+- Better scan progress events with per-module status.
+- Finding deduplication and stable finding IDs.
+- Evidence drill-down in the dashboard findings table.
+- Richer HTML report templates.
+- Unit and integration tests around API routes and worker execution.
+- `.gitignore` cleanup for Python cache files and generated reports.
+
+Phase 2:
+
+- Authentication-aware crawling with secure cookie/session handling.
+- Playwright-based crawling for JavaScript-heavy apps.
+- CSRF token validation improvements.
+- CSP analysis.
+- TLS checks.
+- Technology-specific module recommendations.
+- Safer external tool normalization into unified findings.
+
+Phase 3:
+
+- Plugin system for adding scanner modules.
+- Nuclei template management.
+- OWASP ZAP API integration.
+- Batch scans and scheduled scans.
+- GitHub/Jira issue export.
+- Team/organization support.
+
+## Limitations
+
+- This is not a complete replacement for manual security testing.
+- Passive heuristics may produce false positives.
+- Active checks are intentionally basic and conservative.
+- Authenticated area scanning is not implemented yet.
+- JavaScript-heavy application crawling is limited until browser automation is added.
+- External tools must be installed separately in the worker environment.
+
+## Responsible Testing Targets
+
+Use local intentionally vulnerable apps for development and validation, such as:
+
+- OWASP Juice Shop
+- DVWA
+- bWAPP
+- WebGoat
+
+Only scan public systems when you have explicit written authorization.
+
+## License
+
+Add a project license before publishing or distributing this repository. Common choices include MIT, Apache-2.0, or GPL-3.0 depending on your goals.
+
+## Final Note
+
+HyperScan is a foundation for a careful, extensible, ethical vulnerability scanner. Build responsibly, test on authorized targets, and treat every finding as something that still deserves human review.

@@ -3,8 +3,11 @@ from typing import Any
 
 from app.scanner.modules.cors import CorsMisconfigModule
 from app.scanner.modules.crawler import CrawlerModule
+from app.scanner.modules.csrf import CsrfTokenModule
 from app.scanner.modules.external_tools import ExternalToolsModule
+from app.scanner.modules.fingerprinting import TechFingerprintingModule
 from app.scanner.modules.headers import SecurityHeadersModule
+from app.scanner.modules.sensitive_data import SensitiveDataExposureModule
 from app.scanner.modules.sqli import BasicSQLiModule
 from app.scanner.modules.xss import ReflectedXSSModule
 from app.schemas.scan import Finding
@@ -13,7 +16,13 @@ from app.schemas.scan import Finding
 class ScannerEngine:
     def __init__(self) -> None:
         self.crawler = CrawlerModule()
-        self.passive_modules = [SecurityHeadersModule(), CorsMisconfigModule()]
+        self.passive_modules = [
+            SecurityHeadersModule(),
+            CorsMisconfigModule(),
+            TechFingerprintingModule(),
+            SensitiveDataExposureModule(),
+            CsrfTokenModule(),
+        ]
         self.active_modules = [ReflectedXSSModule(), BasicSQLiModule()]
         self.multitool_modules = [ExternalToolsModule()]
 

@@ -12,6 +12,32 @@ type ScanSummary = {
   updated_at?: string
 }
 
+type ScanFinding = {
+  module?: string
+  title?: string
+  severity?: string
+  description?: string
+  remediation?: string
+  evidence?: unknown
+}
+
+const profileDetails: Record<ScanProfile, string> = {
+  quick: 'Crawler plus passive checks: headers, CORS, fingerprinting, sensitive data, and CSRF form heuristics.',
+  full: 'Everything in quick, plus active XSS/SQLi heuristics and external adapters when installed server-side.',
+  custom: 'Currently mirrors full; module-level selection is planned for the next backend slice.',
+}
+
+const moduleGroups = [
+  {
+    title: 'Passive coverage',
+    modules: ['Crawler', 'Headers', 'CORS', 'Tech fingerprinting', 'Sensitive data', 'CSRF forms'],
+  },
+  {
+    title: 'Full profile adds',
+    modules: ['Reflected XSS', 'Error-based SQLi', 'Nuclei', 'Nikto', 'sqlmap'],
+  },
+]
+
 function LogoMark({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,6 +70,26 @@ function statusBadge(status?: string) {
   if (['failed', 'error'].includes(s)) return { cls: 'danger', label: status ?? 'failed' }
   if (['running', 'queued', 'started', 'in_progress'].includes(s)) return { cls: 'warn', label: status ?? 'running' }
   return { cls: '', label: status ?? 'unknown' }
+}
+
+function severityClasses(severity?: string) {
+  const s = String(severity ?? '').toLowerCase()
+  if (['critical', 'high'].includes(s)) return 'border-rose-400/30 bg-rose-400/10 text-rose-100'
+  if (s === 'medium') return 'border-amber-400/25 bg-amber-400/10 text-amber-100'
+  if (s === 'low') return 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100'
+  return 'border-white/10 bg-black/20 text-hs-muted'
+}
+
+function parseFindings(scanData: unknown): ScanFinding[] {
+  if (!scanData || typeof scanData !== 'object' || !('findings_json' in scanData)) return []
+  const raw = (scanData as { findings_json?: unknown }).findings_json
+  if (typeof raw !== 'string' || !raw.trim()) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as ScanFinding[]) : []
+  } catch {
+    return []
+  }
 }
 
 export function App() {
@@ -192,6 +238,16 @@ export function App() {
   }, [isAuthed])
 
   const canSubmit = isAuthed && target.trim().length > 0 && authorized
+  const findings = useMemo(() => parseFindings(scanData), [scanData])
+  const severitySummary = useMemo(
+    () =>
+      findings.reduce<Record<string, number>>((acc, finding) => {
+        const severity = String(finding.severity || 'info').toLowerCase()
+        acc[severity] = (acc[severity] || 0) + 1
+        return acc
+      }, {}),
+    [findings],
+  )
 
   return (
     <div>
@@ -260,6 +316,22 @@ export function App() {
                     <option value="full">full (active)</option>
                     <option value="custom">custom</option>
                   </select>
+                  <p className="mt-2 text-xs leading-relaxed text-hs-muted">{profileDetails[profile]}</p>
+                </div>
+
+                <div className="sm:col-span-2 grid gap-2 sm:grid-cols-2">
+                  {moduleGroups.map((group) => (
+                    <div key={group.title} className="rounded-xl border border-white/10 bg-black/10 p-3">
+                      <div className="text-xs font-semibold text-white">{group.title}</div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {group.modules.map((module) => (
+                          <span key={module} className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[11px] text-hs-muted">
+                            {module}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="sm:col-span-1">
@@ -410,6 +482,62 @@ export function App() {
                     </a>
                   </div>
                 ) : null}
+
+                <div className="sm:col-span-2 rounded-2xl border border-white/10 bg-black/10 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Findings</h3>
+                      <p className="mt-1 text-xs text-hs-muted">Parsed from the loaded scan response.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(severitySummary).length > 0 ? (
+                        Object.entries(severitySummary).map(([severity, count]) => (
+                          <span key={severity} className={`rounded-full border px-2 py-0.5 text-[11px] ${severityClasses(severity)}`}>
+                            {severity}: {count}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[11px] text-hs-muted">No loaded findings</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {findings.length > 0 ? (
+                    <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+                      <table className="w-full border-collapse text-left text-xs">
+                        <thead className="bg-black/30 text-hs-muted">
+                          <tr>
+                            <th className="px-3 py-2 font-semibold">Severity</th>
+                            <th className="px-3 py-2 font-semibold">Module</th>
+                            <th className="px-3 py-2 font-semibold">Finding</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-black/10">
+                          {findings.slice(0, 20).map((finding, index) => (
+                            <tr key={`${finding.module ?? 'module'}-${finding.title ?? 'finding'}-${index}`} className="border-t border-white/10 align-top">
+                              <td className="px-3 py-2">
+                                <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] ${severityClasses(finding.severity)}`}>
+                                  {finding.severity || 'info'}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 font-mono text-[11px] text-hs-muted">{finding.module || 'unknown'}</td>
+                              <td className="px-3 py-2">
+                                <div className="font-semibold text-white">{finding.title || 'Untitled finding'}</div>
+                                <div className="mt-1 leading-relaxed text-hs-muted">{finding.description || 'No description provided.'}</div>
+                                {finding.remediation ? <div className="mt-2 leading-relaxed text-[#CFE3FF]">{finding.remediation}</div> : null}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {findings.length > 20 ? <div className="border-t border-white/10 px-3 py-2 text-xs text-hs-muted">Showing first 20 findings. Open the full report for all results.</div> : null}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-hs-muted">
+                      Load a completed scan to see findings here.
+                    </div>
+                  )}
+                </div>
 
                 <div className="sm:col-span-2">
                   <div className="mb-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-hs-muted inline-flex">Raw response preview</div>
@@ -578,4 +706,3 @@ export function App() {
     </div>
   )
 }
-

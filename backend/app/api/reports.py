@@ -1,4 +1,5 @@
 import json
+from html import escape
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
@@ -21,6 +22,10 @@ def _severity_summary(findings: list[dict]) -> dict[str, int]:
             sev = "info"
         summary[sev] += 1
     return summary
+
+
+def _html(value: object) -> str:
+    return escape(str(value), quote=True)
 
 
 @router.get("/{scan_id}.json")
@@ -75,20 +80,21 @@ def get_report_html(
     for finding in findings:
         rows.append(
             "<tr>"
-            f"<td>{finding.get('module', '')}</td>"
-            f"<td>{finding.get('title', '')}</td>"
-            f"<td>{finding.get('severity', '')}</td>"
-            f"<td>{finding.get('description', '')}</td>"
+            f"<td>{_html(finding.get('module', ''))}</td>"
+            f"<td>{_html(finding.get('title', ''))}</td>"
+            f"<td>{_html(finding.get('severity', ''))}</td>"
+            f"<td>{_html(finding.get('description', ''))}</td>"
             "</tr>"
         )
     table_rows = "".join(rows) or "<tr><td colspan='4'>No findings.</td></tr>"
+    summary = _severity_summary(findings)
     return (
         "<html><head><title>Scan Report</title></head><body>"
         f"<h1>Scan Report #{job.id}</h1>"
-        f"<p><strong>Target:</strong> {job.target_url}</p>"
-        f"<p><strong>Profile:</strong> {job.profile}</p>"
-        f"<p><strong>Status:</strong> {job.status.value}</p>"
-        f"<p><strong>Severity Summary:</strong> {_severity_summary(findings)}</p>"
+        f"<p><strong>Target:</strong> {_html(job.target_url)}</p>"
+        f"<p><strong>Profile:</strong> {_html(job.profile)}</p>"
+        f"<p><strong>Status:</strong> {_html(job.status.value)}</p>"
+        f"<p><strong>Severity Summary:</strong> {_html(summary)}</p>"
         "<table border='1' cellspacing='0' cellpadding='6'>"
         "<thead><tr><th>Module</th><th>Title</th><th>Severity</th><th>Description</th></tr></thead>"
         f"<tbody>{table_rows}</tbody>"
