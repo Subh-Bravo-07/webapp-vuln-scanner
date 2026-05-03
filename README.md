@@ -312,6 +312,16 @@ npm run build
 
 Near-term:
 
+- ~~Target validation errors return clean API responses instead of 500s.~~
+- ~~HTML report rendering escapes scanner-controlled content.~~
+- ~~`sqlmap` writes to a temporary per-run output directory.~~
+- ~~Backend Docker image includes the static frontend fallback folder.~~
+- ~~Add passive technology fingerprinting.~~
+- ~~Add passive sensitive data exposure heuristics.~~
+- ~~Add passive CSRF form heuristics.~~
+- ~~Show scan profile descriptions and module coverage in the dashboard.~~
+- ~~Display loaded scan findings in the dashboard with severity summary and remediation.~~
+- ~~Add focused unit tests for passive scanner module logic.~~
 - Module selection for the `custom` profile.
 - Better scan progress events with per-module status.
 - Finding deduplication and stable finding IDs.
