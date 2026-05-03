@@ -30,6 +30,7 @@ Use this tool only on systems you own or have explicit written permission to tes
 ### Frontend
 
 - Vite + React + TypeScript dashboard.
+- Self-contained backend-served fallback console at `backend/frontend/index.html`.
 - Tailwind CSS styling.
 - Register/login form.
 - Authorized target submission.
@@ -40,6 +41,8 @@ Use this tool only on systems you own or have explicit written permission to tes
 - In-dashboard findings view with severity summary, module, title, description, and remediation.
 - WebSocket-based live scan status.
 - Report links for JSON, HTML, and PDF exports.
+
+The backend fallback console does not depend on CDN-hosted React. It provides the core scanner workflows directly from the FastAPI static mount, including auth, scan creation, history, live status, report links, and escaped findings rendering.
 
 ### Scanner Engine
 
@@ -321,6 +324,7 @@ Near-term:
 - ~~Add passive CSRF form heuristics.~~
 - ~~Show scan profile descriptions and module coverage in the dashboard.~~
 - ~~Display loaded scan findings in the dashboard with severity summary and remediation.~~
+- ~~Redesign the backend-served fallback console without external frontend dependencies.~~
 - ~~Add focused unit tests for passive scanner module logic.~~
 - Module selection for the `custom` profile.
 - Better scan progress events with per-module status.

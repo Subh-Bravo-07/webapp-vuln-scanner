@@ -4,605 +4,1259 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#0B1020" />
-    <title>HyperScan • Webapp Vulnerability Scanner</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop stop-color='%2322D3EE'/%3E%3Cstop offset='1' stop-color='%23A78BFA'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='%230B1020' d='M0 0h64v64H0z'/%3E%3Cpath fill='url(%23g)' d='M32 6c10 6 18 8 18 8v18c0 13-8 21-18 26C22 53 14 45 14 32V14s8-2 18-8z'/%3E%3Cpath fill='%230B1020' opacity='.85' d='M32 16a2 2 0 0 1 2 2v8h8a2 2 0 1 1 0 4h-8v8a2 2 0 1 1-4 0v-8h-8a2 2 0 1 1 0-4h8v-8a2 2 0 0 1 2-2z'/%3E%3C/svg%3E"
-    />
+    <meta name="theme-color" content="#08111f" />
+    <title>HyperScan - Webapp Vulnerability Scanner</title>
+    <link rel="icon" href="hyperscan-logo.svg" />
     <style>
-      :root{
-        --bg0:#070A14;
-        --bg1:#0B1020;
-        --panel: rgba(20, 27, 52, .82);
-        --panel2: rgba(10, 14, 30, .60);
-        --border: rgba(148, 163, 184, .18);
-        --text:#E5E7EB;
-        --muted:#A7B0C0;
-        --danger:#FB7185;
-        --warn:#FBBF24;
-        --ok:#34D399;
-        --accA:#22D3EE;
-        --accB:#A78BFA;
-        --shadow: 0 18px 45px rgba(0,0,0,.45);
-        --r12: 12px;
-        --r16: 16px;
+      :root {
+        --bg: #07111f;
+        --surface: #0d1828;
+        --surface-2: #111f33;
+        --surface-3: #16273d;
+        --line: rgba(155, 174, 203, 0.18);
+        --line-strong: rgba(155, 174, 203, 0.28);
+        --text: #edf4ff;
+        --muted: #9fb0c8;
+        --muted-2: #72839b;
+        --cyan: #38d3ee;
+        --violet: #a78bfa;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --rose: #fb7185;
+        --blue: #93c5fd;
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+        --radius: 8px;
       }
-      *{ box-sizing:border-box; }
-      html,body{ height:100%; }
-      body{
-        margin:0;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text);
         background:
-          radial-gradient(1100px 700px at 15% 10%, rgba(34,211,238,.12), transparent 58%),
-          radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,.12), transparent 60%),
-          radial-gradient(900px 700px at 50% 120%, rgba(34,211,238,.08), transparent 60%),
-          linear-gradient(180deg, var(--bg0), var(--bg1));
+          linear-gradient(180deg, rgba(56, 211, 238, 0.06), transparent 360px),
+          linear-gradient(180deg, #07111f, #0a1322 48%, #07111f);
       }
-      a{ color: #BBD7FF; text-decoration:none; }
-      a:hover{ text-decoration: underline; }
-      .container{
-        max-width: 1200px;
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .shell {
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 24px 18px 48px;
+        padding: 0 18px 42px;
       }
-      .topbar{
+
+      .topbar {
         position: sticky;
         top: 0;
-        z-index: 5;
-        backdrop-filter: blur(10px);
-        background: linear-gradient(180deg, rgba(7,10,20,.78), rgba(7,10,20,.45));
-        border-bottom: 1px solid var(--border);
+        z-index: 20;
+        border-bottom: 1px solid var(--line);
+        background: rgba(7, 17, 31, 0.88);
+        backdrop-filter: blur(14px);
       }
-      .topbarInner{
-        max-width: 1200px;
+
+      .topbar-inner {
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 14px 18px;
-        display:flex;
-        align-items:center;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
+        gap: 14px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
         gap: 12px;
+        min-width: 0;
       }
-      .brand{
-        display:flex;
-        align-items:center;
-        gap: 10px;
-        min-width: 240px;
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
       }
-      .brand h1{
-        margin:0;
-        font-size: 14px;
-        letter-spacing: .2px;
-        font-weight: 700;
+
+      .brand-title {
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.1;
       }
-      .brand p{
-        margin:0;
-        font-size: 12px;
+
+      .brand-subtitle {
+        margin-top: 2px;
         color: var(--muted);
-      }
-      .pill{
         font-size: 12px;
-        color: var(--muted);
-        border: 1px solid var(--border);
-        background: rgba(15,23,42,.35);
-        padding: 6px 10px;
-        border-radius: 999px;
-        display:inline-flex;
-        align-items:center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
         gap: 8px;
+        min-height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(17, 31, 51, 0.72);
+        color: var(--muted);
+        padding: 5px 10px;
+        font-size: 12px;
       }
-      .dot{
+
+      .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 999px;
-        background: rgba(167, 139, 250, .9);
-        box-shadow: 0 0 0 4px rgba(167,139,250,.18);
+        background: var(--rose);
+        box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.14);
       }
-      .grid{
-        display:grid;
-        grid-template-columns: 1.1fr .9fr;
-        gap: 16px;
+
+      body.authed .status-dot {
+        background: var(--green);
+        box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.14);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 18px;
+        padding: 22px 0 16px;
+      }
+
+      .intro {
+        min-height: 214px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(135deg, rgba(56, 211, 238, 0.09), transparent 42%),
+          linear-gradient(180deg, rgba(17, 31, 51, 0.95), rgba(13, 24, 40, 0.95));
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+
+      .intro h1 {
+        margin: 0;
+        max-width: 780px;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .intro p {
+        margin: 10px 0 0;
+        max-width: 780px;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .module-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
         margin-top: 18px;
       }
-      @media (max-width: 980px){
-        .grid{ grid-template-columns: 1fr; }
-        .brand{ min-width: auto; }
-      }
-      .card{
-        background: linear-gradient(180deg, var(--panel), rgba(20,27,52,.66));
-        border: 1px solid var(--border);
-        border-radius: var(--r16);
-        box-shadow: var(--shadow);
-        padding: 16px;
-      }
-      .cardHeader{
-        display:flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .cardHeader h2{
-        margin:0;
-        font-size: 14px;
-        font-weight: 700;
-      }
-      .cardHeader .sub{
-        margin-top: 4px;
-        font-size: 12px;
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(7, 17, 31, 0.52);
         color: var(--muted);
-        line-height: 1.35;
+        padding: 4px 9px;
+        font-size: 12px;
+        white-space: nowrap;
       }
-      .stack{ display:flex; flex-direction:column; gap: 10px; }
-      label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-      input, select, textarea{
-        width:100%;
-        border-radius: 12px;
-        border: 1px solid rgba(148, 163, 184, .22);
-        background: rgba(2,6,23,.35);
-        color: var(--text);
-        padding: 10px 12px;
-        outline: none;
+
+      .chip.cyan {
+        border-color: rgba(56, 211, 238, 0.32);
+        color: #c7f7ff;
+        background: rgba(56, 211, 238, 0.08);
       }
-      textarea{ resize: vertical; min-height: 84px; }
-      input:focus, select:focus, textarea:focus{
-        border-color: rgba(34, 211, 238, .55);
-        box-shadow: 0 0 0 4px rgba(34,211,238,.12);
+
+      .chip.green {
+        border-color: rgba(52, 211, 153, 0.3);
+        color: #cbf8e4;
+        background: rgba(52, 211, 153, 0.08);
       }
-      .row{
-        display:grid;
-        grid-template-columns: 1fr 1fr;
+
+      .chip.amber {
+        border-color: rgba(251, 191, 36, 0.3);
+        color: #ffedbd;
+        background: rgba(251, 191, 36, 0.08);
+      }
+
+      .chip.rose {
+        border-color: rgba(251, 113, 133, 0.33);
+        color: #ffd2da;
+        background: rgba(251, 113, 133, 0.08);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
       }
-      @media (max-width: 560px){
-        .row{ grid-template-columns: 1fr; }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(17, 31, 51, 0.86);
+        padding: 14px;
       }
-      .btnRow{ display:flex; gap: 10px; flex-wrap: wrap; }
-      button{
-        cursor:pointer;
-        border-radius: 12px;
-        border: 1px solid rgba(148, 163, 184, .18);
-        padding: 10px 12px;
-        font-weight: 600;
-        background: rgba(15, 23, 42, .55);
+
+      .metric-value {
+        font-size: 26px;
+        line-height: 1;
+        font-weight: 800;
+      }
+
+      .metric-label {
+        margin-top: 7px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      .notice {
+        border: 1px solid rgba(251, 191, 36, 0.28);
+        border-radius: var(--radius);
+        background: rgba(251, 191, 36, 0.08);
+        color: #ffe9b5;
+        padding: 11px 12px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .notice strong {
         color: var(--text);
       }
-      button.primary{
-        border: none;
-        background: linear-gradient(90deg, rgba(34,211,238,.95), rgba(167,139,250,.95));
-        color: #06121f;
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
+        gap: 18px;
       }
-      button.danger{
-        background: rgba(251,113,133,.10);
-        border-color: rgba(251,113,133,.25);
-        color: #FFD1DA;
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
       }
-      button:disabled{
-        opacity: .55;
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(13, 24, 40, 0.92);
+        box-shadow: var(--shadow);
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid var(--line);
+        padding: 15px 16px 13px;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .panel-copy {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .endpoint {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(7, 17, 31, 0.58);
+        color: var(--muted);
+        padding: 5px 9px;
+        font-size: 11px;
+      }
+
+      .mono {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      .panel-body {
+        padding: 16px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 31, 0.68);
+        color: var(--text);
+        outline: none;
+        padding: 9px 10px;
+      }
+
+      textarea {
+        min-height: 88px;
+        resize: vertical;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: rgba(56, 211, 238, 0.58);
+        box-shadow: 0 0 0 3px rgba(56, 211, 238, 0.11);
+      }
+
+      .profile-help {
+        margin-top: 7px;
+        color: var(--muted-2);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .module-cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mini-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 31, 0.42);
+        padding: 11px;
+      }
+
+      .mini-title {
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mini-card .module-strip {
+        margin-top: 9px;
+      }
+
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 31, 0.42);
+        padding: 10px;
+      }
+
+      .checkbox-row input {
+        width: 18px;
+        min-height: 18px;
+        height: 18px;
+        margin: 1px 0 0;
+        accent-color: var(--cyan);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-top: 12px;
+      }
+
+      button {
+        min-height: 38px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: rgba(22, 39, 61, 0.94);
+        color: var(--text);
+        cursor: pointer;
+        padding: 8px 12px;
+        font-weight: 750;
+      }
+
+      button:hover:not(:disabled) {
+        border-color: rgba(56, 211, 238, 0.46);
+      }
+
+      button:disabled {
+        opacity: 0.52;
         cursor: not-allowed;
       }
-      .alert{
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(2,6,23,.30);
-        padding: 10px 12px;
-        font-size: 12px;
+
+      .primary {
+        border-color: transparent;
+        background: linear-gradient(90deg, var(--cyan), var(--violet));
+        color: #06111e;
+      }
+
+      .danger {
+        border-color: rgba(251, 113, 133, 0.34);
+        background: rgba(251, 113, 133, 0.09);
+        color: #ffd3dc;
+      }
+
+      .message {
+        display: none;
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 31, 0.52);
         color: var(--muted);
-        line-height: 1.4;
+        padding: 10px;
+        font-size: 12px;
+        line-height: 1.45;
       }
-      .alert strong{ color: var(--text); }
-      .alert.danger{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.09); color: #FFD1DA; }
-      .alert.ok{ border-color: rgba(52,211,153,.30); background: rgba(52,211,153,.08); color: #CFFAE5; }
-      .alert.warn{ border-color: rgba(251,191,36,.30); background: rgba(251,191,36,.08); color: #FFECC7; }
-      .kbd{
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 11px;
-        color: #CFE3FF;
-        border: 1px solid rgba(148, 163, 184, .22);
-        background: rgba(2,6,23,.25);
-        padding: 3px 7px;
-        border-radius: 8px;
-        display:inline-block;
+
+      .message.show {
+        display: block;
       }
-      .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-      .table{
-        width:100%;
+
+      .message.ok {
+        border-color: rgba(52, 211, 153, 0.3);
+        background: rgba(52, 211, 153, 0.08);
+        color: #cff8e5;
+      }
+
+      .message.warn {
+        border-color: rgba(251, 191, 36, 0.3);
+        background: rgba(251, 191, 36, 0.08);
+        color: #ffe9b5;
+      }
+
+      .message.danger {
+        border-color: rgba(251, 113, 133, 0.33);
+        background: rgba(251, 113, 133, 0.08);
+        color: #ffd3dc;
+      }
+
+      .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+
+      table {
+        width: 100%;
         border-collapse: collapse;
-        overflow:hidden;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(2,6,23,.18);
       }
-      .table th, .table td{
-        padding: 10px 12px;
-        font-size: 12px;
-        border-bottom: 1px solid rgba(148,163,184,.14);
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px 10px;
+        text-align: left;
         vertical-align: top;
-      }
-      .table th{
-        color: var(--muted);
-        font-weight: 600;
-        text-align:left;
-        background: rgba(2,6,23,.22);
-      }
-      .badge{
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, .18);
-        background: rgba(15,23,42,.35);
-        color: var(--muted);
-        display:inline-flex;
-        align-items:center;
-        gap: 6px;
-      }
-      .badge.ok{ border-color: rgba(52,211,153,.30); color: #CFFAE5; background: rgba(52,211,153,.08); }
-      .badge.warn{ border-color: rgba(251,191,36,.30); color: #FFECC7; background: rgba(251,191,36,.08); }
-      .badge.danger{ border-color: rgba(251,113,133,.35); color: #FFD1DA; background: rgba(251,113,133,.08); }
-      .sep{ height:1px; background: rgba(148,163,184,.14); margin: 12px 0; }
-      pre{
-        margin:0;
-        overflow:auto;
-        padding: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(148,163,184,.16);
-        background: rgba(2,6,23,.30);
-        color: #D7E2F6;
         font-size: 12px;
-        line-height: 1.35;
+      }
+
+      th {
+        background: rgba(7, 17, 31, 0.58);
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody tr {
+        cursor: pointer;
+      }
+
+      tbody tr:hover {
+        background: rgba(56, 211, 238, 0.05);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(7, 17, 31, 0.54);
+        color: var(--muted);
+        padding: 3px 8px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .badge.ok,
+      .severity-low {
+        border-color: rgba(52, 211, 153, 0.3);
+        background: rgba(52, 211, 153, 0.08);
+        color: #cff8e5;
+      }
+
+      .badge.warn,
+      .severity-medium {
+        border-color: rgba(251, 191, 36, 0.3);
+        background: rgba(251, 191, 36, 0.08);
+        color: #ffe9b5;
+      }
+
+      .badge.danger,
+      .severity-high,
+      .severity-critical {
+        border-color: rgba(251, 113, 133, 0.33);
+        background: rgba(251, 113, 133, 0.08);
+        color: #ffd3dc;
+      }
+
+      .summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      .findings-empty,
+      .history-empty {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 31, 0.42);
+        color: var(--muted);
+        padding: 11px;
+        font-size: 13px;
+      }
+
+      .finding-title {
+        font-weight: 800;
+        color: var(--text);
+      }
+
+      .finding-desc {
+        margin-top: 5px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .finding-remediation {
+        margin-top: 7px;
+        color: #cfe3ff;
+        line-height: 1.45;
+      }
+
+      pre {
+        max-height: 360px;
+        overflow: auto;
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(4, 10, 20, 0.72);
+        color: #d8e6f8;
+        padding: 12px;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .report-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        color: var(--muted-2);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .intro {
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .topbar-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .brand-subtitle {
+          white-space: normal;
+        }
+
+        .hero {
+          padding-top: 16px;
+        }
+
+        .intro h1 {
+          font-size: 24px;
+        }
+
+        .metrics,
+        .form-grid,
+        .module-cards {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="logo-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#38d3ee" />
+                <stop offset="1" stop-color="#a78bfa" />
+              </linearGradient>
+            </defs>
+            <path d="M32 6c10 6 18 8 18 8v18c0 13-8 21-18 26C22 53 14 45 14 32V14s8-2 18-8z" fill="url(#logo-gradient)" />
+            <path d="M32 16a2 2 0 0 1 2 2v8h8a2 2 0 1 1 0 4h-8v8a2 2 0 1 1-4 0v-8h-8a2 2 0 1 1 0-4h8v-8a2 2 0 0 1 2-2z" fill="#07111f" opacity=".92" />
+          </svg>
+          <div>
+            <div class="brand-title">HyperScan</div>
+            <div class="brand-subtitle">Backend-served scanner console</div>
+          </div>
+        </div>
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span id="authLabel">Not logged in</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="hero">
+        <div class="intro">
+          <div>
+            <h1>Authorized webapp vulnerability scanning, from the backend container.</h1>
+            <p>
+              This fallback console is served directly by FastAPI. It keeps the core workflows available even without the Vite development server: login, submit scoped scans, watch status, inspect findings, and open reports.
+            </p>
+          </div>
+          <div class="module-strip" aria-label="Implemented scanner modules">
+            <span class="chip cyan">Crawler</span>
+            <span class="chip cyan">Headers</span>
+            <span class="chip cyan">CORS</span>
+            <span class="chip cyan">Fingerprinting</span>
+            <span class="chip cyan">Sensitive data</span>
+            <span class="chip cyan">CSRF forms</span>
+            <span class="chip amber">XSS</span>
+            <span class="chip amber">SQLi</span>
+            <span class="chip green">Nuclei</span>
+            <span class="chip green">Nikto</span>
+            <span class="chip green">sqlmap</span>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-value">3</div>
+              <div class="metric-label">Profiles: quick, full, custom</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">11</div>
+              <div class="metric-label">Built-in and optional module paths</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">JWT</div>
+              <div class="metric-label">Per-user scan and report access</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">SSE/WS</div>
+              <div class="metric-label">Live status endpoints</div>
+            </div>
+          </div>
+          <div class="notice">
+            <strong>Ethical use only.</strong> Scan only targets you own or have explicit written permission to test. The scanner blocks common local/private target abuse, but permission is still your responsibility.
+          </div>
+        </div>
+      </section>
+
+      <section class="main-grid">
+        <div class="stack">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Start scan</h2>
+                <p class="panel-copy">Create an asynchronous scan job with explicit authorization and scope controls.</p>
+              </div>
+              <span class="endpoint mono">POST /api/scans</span>
+            </div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div>
+                  <label for="target">Target URL</label>
+                  <input id="target" placeholder="https://example.com" autocomplete="off" />
+                </div>
+                <div>
+                  <label for="profile">Profile</label>
+                  <select id="profile">
+                    <option value="quick">quick - passive</option>
+                    <option value="full">full - active + external tools</option>
+                    <option value="custom">custom - currently mirrors full</option>
+                  </select>
+                  <div id="profileHelp" class="profile-help"></div>
+                </div>
+                <div class="full module-cards">
+                  <div class="mini-card">
+                    <div class="mini-title">Quick profile</div>
+                    <div class="module-strip">
+                      <span class="chip">Crawler</span>
+                      <span class="chip">Headers</span>
+                      <span class="chip">CORS</span>
+                      <span class="chip">Fingerprinting</span>
+                      <span class="chip">Sensitive data</span>
+                      <span class="chip">CSRF forms</span>
+                    </div>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-title">Full profile adds</div>
+                    <div class="module-strip">
+                      <span class="chip">Reflected XSS</span>
+                      <span class="chip">Error-based SQLi</span>
+                      <span class="chip">Nuclei</span>
+                      <span class="chip">Nikto</span>
+                      <span class="chip">sqlmap</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label for="scope">In-scope URLs</label>
+                  <textarea id="scope" placeholder="https://example.com/app, https://example.com/api"></textarea>
+                </div>
+                <div>
+                  <label for="exclusions">Exclusions</label>
+                  <textarea id="exclusions" placeholder="/logout, /admin/delete"></textarea>
+                </div>
+                <div class="full checkbox-row">
+                  <input id="authorized" type="checkbox" />
+                  <label for="authorized">I confirm I have explicit written authorization for this target.</label>
+                </div>
+              </div>
+              <div class="actions">
+                <button id="createScan" class="primary">Submit scan</button>
+                <button id="refreshHistory">Refresh history</button>
+                <button id="logout" class="danger">Logout</button>
+              </div>
+              <div id="createMessage" class="message"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Scan details</h2>
+                <p class="panel-copy">Load results, watch live status, and open exported reports.</p>
+              </div>
+              <span class="endpoint mono">GET /api/scans/{id}</span>
+            </div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div>
+                  <label for="scanId">Scan ID</label>
+                  <input id="scanId" placeholder="e.g. 1" autocomplete="off" />
+                </div>
+                <div>
+                  <label>Actions</label>
+                  <div class="actions" style="margin-top: 0">
+                    <button id="loadScan">Load scan</button>
+                    <button id="watchScan">Watch live</button>
+                  </div>
+                </div>
+              </div>
+              <div id="streamMessage" class="message"></div>
+              <div class="report-links" id="reportLinks" style="margin-top: 12px"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Findings</h2>
+                <p class="panel-copy">Parsed from the loaded scan response.</p>
+              </div>
+              <span class="endpoint">dashboard view</span>
+            </div>
+            <div class="panel-body">
+              <div class="summary-row">
+                <div id="findingsSummary" class="module-strip" style="margin-top: 0"></div>
+              </div>
+              <div id="findingsView" class="findings-empty">Load a completed scan to view findings here.</div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Raw response</h2>
+                <p class="panel-copy">Useful for debugging API responses and report data.</p>
+              </div>
+              <span class="endpoint">JSON</span>
+            </div>
+            <div class="panel-body">
+              <pre id="rawJson">{
+  "hint": "Load a scan to view its JSON response here."
+}</pre>
+            </div>
+          </article>
+        </div>
+
+        <aside class="stack">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Authentication</h2>
+                <p class="panel-copy">Register and login to get a bearer token stored in this browser.</p>
+              </div>
+              <span class="endpoint mono">POST /api/auth/login</span>
+            </div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div class="full">
+                  <label for="email">Email</label>
+                  <input id="email" placeholder="you@example.com" autocomplete="email" />
+                </div>
+                <div class="full">
+                  <label for="password">Password</label>
+                  <input id="password" type="password" placeholder="minimum 8 characters" autocomplete="current-password" />
+                </div>
+              </div>
+              <div class="actions">
+                <button id="register">Register</button>
+                <button id="login" class="primary">Login</button>
+              </div>
+              <div id="authMessage" class="message"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Scan history</h2>
+                <p class="panel-copy">Recent scans for the current account. Click a row to select it.</p>
+              </div>
+              <span class="endpoint mono">GET /api/scans</span>
+            </div>
+            <div class="panel-body">
+              <div id="historyView" class="history-empty">Login to view your scan history.</div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Useful links</h2>
+                <p class="panel-copy">Backend endpoints and development surfaces.</p>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="module-strip" style="margin-top: 0">
+                <a class="chip cyan" href="/docs" target="_blank" rel="noreferrer">API docs</a>
+                <a class="chip" href="/health" target="_blank" rel="noreferrer">Health</a>
+                <a class="chip" href="/api/scans" target="_blank" rel="noreferrer">Scans API</a>
+              </div>
+              <p class="footer-note">
+                Quick scans are passive. Full/custom scans may send active probe payloads and run installed external tools, so keep targets authorized and scan windows intentional.
+              </p>
+            </div>
+          </article>
+        </aside>
+      </section>
+    </main>
+
     <script>
-      const { useEffect, useMemo, useRef, useState } = React;
-      const h = React.createElement;
+      const $ = (id) => document.getElementById(id);
+      const profileDetails = {
+        quick: "Crawler plus passive checks: headers, CORS, fingerprinting, sensitive data, and CSRF form heuristics.",
+        full: "Everything in quick, plus active XSS/SQLi heuristics and external adapters when installed server-side.",
+        custom: "Currently mirrors full; module-level selection is planned for a later backend slice."
+      };
+      let ws = null;
 
-      function LogoMark({ size }) {
-        const s = size || 28;
-        return h("svg",
-          { width: s, height: s, viewBox: "0 0 64 64", fill: "none", xmlns: "http://www.w3.org/2000/svg" },
-          h("defs", null,
-            h("linearGradient", { id: "hs_g", x1: "0", y1: "0", x2: "1", y2: "0" },
-              h("stop", { offset: "0", stopColor: "#22D3EE" }),
-              h("stop", { offset: "1", stopColor: "#A78BFA" })
-            )
-          ),
-          h("path", { d: "M32 6c10 6 18 8 18 8v18c0 13-8 21-18 26C22 53 14 45 14 32V14s8-2 18-8z", fill: "url(#hs_g)" }),
-          h("path", { d: "M32 16a2 2 0 0 1 2 2v8h8a2 2 0 1 1 0 4h-8v8a2 2 0 1 1-4 0v-8h-8a2 2 0 1 1 0-4h8v-8a2 2 0 0 1 2-2z", fill: "rgba(11,16,32,.92)" })
+      function token() {
+        return localStorage.getItem("access_token") || "";
+      }
+
+      function isAuthed() {
+        return Boolean(token());
+      }
+
+      function authHeaders() {
+        return isAuthed() ? { Authorization: `Bearer ${token()}` } : {};
+      }
+
+      function setMessage(id, kind, text) {
+        const el = $(id);
+        el.className = `message show ${kind || ""}`;
+        el.textContent = text;
+      }
+
+      function clearMessage(id) {
+        const el = $(id);
+        el.className = "message";
+        el.textContent = "";
+      }
+
+      function safeJson(value) {
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch {
+          return String(value);
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function updateAuthUi() {
+        document.body.classList.toggle("authed", isAuthed());
+        $("authLabel").textContent = isAuthed() ? "Token loaded" : "Not logged in";
+      }
+
+      function splitList(value) {
+        return value.split(",").map((item) => item.trim()).filter(Boolean);
+      }
+
+      function statusClass(status) {
+        const normalized = String(status || "").toLowerCase();
+        if (["completed", "done", "success", "succeeded"].includes(normalized)) return "ok";
+        if (["failed", "error"].includes(normalized)) return "danger";
+        if (["queued", "running", "started", "in_progress"].includes(normalized)) return "warn";
+        return "";
+      }
+
+      function severityClass(severity) {
+        const normalized = String(severity || "info").toLowerCase();
+        if (["critical", "high"].includes(normalized)) return "severity-high";
+        if (normalized === "medium") return "severity-medium";
+        if (normalized === "low") return "severity-low";
+        return "";
+      }
+
+      function parseFindings(scan) {
+        if (!scan || typeof scan.findings_json !== "string" || !scan.findings_json.trim()) return [];
+        try {
+          const parsed = JSON.parse(scan.findings_json);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function renderReportLinks() {
+        const scanId = $("scanId").value.trim();
+        const container = $("reportLinks");
+        if (!scanId || !isAuthed()) {
+          container.innerHTML = "";
+          return;
+        }
+        const encodedToken = encodeURIComponent(token());
+        container.innerHTML = ["json", "html", "pdf"].map((ext) => (
+          `<a class="chip cyan" href="/api/reports/${encodeURIComponent(scanId)}.${ext}?token=${encodedToken}" target="_blank" rel="noreferrer">Open ${ext.toUpperCase()}</a>`
+        )).join("");
+      }
+
+      function renderFindings(scan) {
+        const findings = parseFindings(scan);
+        const summary = {};
+        for (const finding of findings) {
+          const severity = String(finding.severity || "info").toLowerCase();
+          summary[severity] = (summary[severity] || 0) + 1;
+        }
+
+        $("findingsSummary").innerHTML = Object.keys(summary).length
+          ? Object.entries(summary).map(([severity, count]) => `<span class="chip ${severityClass(severity)}">${escapeHtml(severity)}: ${count}</span>`).join("")
+          : '<span class="chip">No loaded findings</span>';
+
+        if (!findings.length) {
+          $("findingsView").className = "findings-empty";
+          $("findingsView").textContent = "Load a completed scan to view findings here.";
+          return;
+        }
+
+        $("findingsView").className = "table-wrap";
+        $("findingsView").innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Module</th>
+                <th>Finding</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${findings.slice(0, 20).map((finding) => `
+                <tr>
+                  <td><span class="badge ${severityClass(finding.severity)}">${escapeHtml(finding.severity || "info")}</span></td>
+                  <td class="mono">${escapeHtml(finding.module || "unknown")}</td>
+                  <td>
+                    <div class="finding-title">${escapeHtml(finding.title || "Untitled finding")}</div>
+                    <div class="finding-desc">${escapeHtml(finding.description || "No description provided.")}</div>
+                    ${finding.remediation ? `<div class="finding-remediation">${escapeHtml(finding.remediation)}</div>` : ""}
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderHistory(scans) {
+        const container = $("historyView");
+        if (!isAuthed()) {
+          container.className = "history-empty";
+          container.textContent = "Login to view your scan history.";
+          return;
+        }
+        if (!scans.length) {
+          container.className = "history-empty";
+          container.textContent = "No scans yet. Create one from the scan form.";
+          return;
+        }
+        container.className = "table-wrap";
+        container.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Target</th>
+                <th>Status</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${scans.slice(0, 15).map((scan) => `
+                <tr data-scan-id="${scan.id}">
+                <td><span class="badge mono">${escapeHtml(scan.id)}</span></td>
+                <td class="mono">${escapeHtml(scan.target_url || "")}</td>
+                <td><span class="badge ${statusClass(scan.status)}">${escapeHtml(scan.status || "unknown")}</span></td>
+                <td class="mono">${escapeHtml(scan.updated_at || "")}</td>
+              </tr>
+            `).join("")}
+            </tbody>
+          </table>
+        `;
+        container.querySelectorAll("[data-scan-id]").forEach((row) => {
+          row.addEventListener("click", () => {
+            $("scanId").value = row.getAttribute("data-scan-id") || "";
+            clearMessage("streamMessage");
+            $("rawJson").textContent = '{\n  "hint": "Load a scan to view its JSON response here."\n}';
+            renderReportLinks();
+          });
+        });
+      }
+
+      async function refreshHistory(silent = false) {
+        if (!isAuthed()) {
+          renderHistory([]);
+          return;
+        }
+        if (!silent) $("refreshHistory").textContent = "Refreshing...";
+        try {
+          const response = await fetch("/api/scans", { headers: authHeaders() });
+          const data = await response.json().catch(() => []);
+          renderHistory(response.ok && Array.isArray(data) ? data : []);
+        } finally {
+          if (!silent) $("refreshHistory").textContent = "Refresh history";
+        }
+      }
+
+      async function register() {
+        clearMessage("authMessage");
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: $("email").value.trim(),
+            password: $("password").value
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        setMessage(
+          "authMessage",
+          response.ok ? "ok" : "danger",
+          response.ok ? `Registered ${data.email || $("email").value.trim()}. You can login now.` : `Register error: ${safeJson(data)}`
         );
       }
 
-      function statusBadge(status) {
-        const s = String(status || "").toLowerCase();
-        if (["succeeded", "success", "done", "completed"].includes(s)) return { cls: "ok", label: status };
-        if (["failed", "error"].includes(s)) return { cls: "danger", label: status };
-        if (["running", "queued", "started", "in_progress"].includes(s)) return { cls: "warn", label: status };
-        return { cls: "", label: status || "unknown" };
+      async function login() {
+        clearMessage("authMessage");
+        const form = new URLSearchParams();
+        form.append("username", $("email").value.trim());
+        form.append("password", $("password").value);
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: form
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.access_token) {
+          localStorage.setItem("access_token", data.access_token);
+          updateAuthUi();
+          setMessage("authMessage", "ok", "Logged in. Your token is stored locally in this browser.");
+          refreshHistory(true);
+        } else {
+          setMessage("authMessage", "danger", `Login error: ${safeJson(data)}`);
+        }
       }
 
-      function safeJson(x) {
-        try { return JSON.stringify(x, null, 2); } catch { return String(x); }
+      function logout() {
+        localStorage.removeItem("access_token");
+        updateAuthUi();
+        renderHistory([]);
+        renderReportLinks();
+        renderFindings(null);
+        setMessage("authMessage", "warn", "Logged out. Token cleared from this browser.");
       }
 
-      function App() {
-        const [email, setEmail] = useState("");
-        const [password, setPassword] = useState("");
-        const [target, setTarget] = useState("");
-        const [profile, setProfile] = useState("quick");
-        const [scope, setScope] = useState("");
-        const [exclusions, setExclusions] = useState("");
-        const [authorized, setAuthorized] = useState(false);
-        const [scanId, setScanId] = useState("");
-        const [authStatus, setAuthStatus] = useState(null);
-        const [createStatus, setCreateStatus] = useState(null);
-        const [scanData, setScanData] = useState(null);
-        const [streamStatus, setStreamStatus] = useState(null);
-        const [scans, setScans] = useState([]);
-        const [loadingScans, setLoadingScans] = useState(false);
-        const wsRef = useRef(null);
-        const token = useMemo(() => localStorage.getItem("access_token") || "", [authStatus]);
-        const isAuthed = Boolean(token);
-
-        const authHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
-        const reportUrl = (ext) => `/api/reports/${scanId}.${ext}?token=${encodeURIComponent(token)}`;
-
-        const logout = () => {
-          localStorage.removeItem("access_token");
-          setAuthStatus({ kind: "warn", text: "Logged out (token cleared from this browser)." });
-          setScanData(null);
-          setStreamStatus(null);
-          setScans([]);
+      async function createScan() {
+        clearMessage("createMessage");
+        if (!isAuthed()) {
+          setMessage("createMessage", "danger", "Login required before you can create scans.");
+          return;
+        }
+        const payload = {
+          target_url: $("target").value.trim(),
+          profile: $("profile").value,
+          authorization_confirmed: $("authorized").checked,
+          in_scope_urls: splitList($("scope").value),
+          exclusions: splitList($("exclusions").value)
         };
-
-        const register = async () => {
-          const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-          });
-          const data = await res.json();
-          setAuthStatus(res.ok
-            ? { kind: "ok", text: `Registered ${data.email}. You can login now.` }
-            : { kind: "danger", text: `Register error: ${safeJson(data)}` }
-          );
-        };
-
-        const login = async () => {
-          const form = new URLSearchParams();
-          form.append("username", email);
-          form.append("password", password);
-          const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: form
-          });
-          const data = await res.json();
-          if (res.ok) {
-            localStorage.setItem("access_token", data.access_token);
-            setAuthStatus({ kind: "ok", text: "Logged in. Your token is stored locally in this browser." });
-          } else {
-            setAuthStatus({ kind: "danger", text: `Login error: ${safeJson(data)}` });
-          }
-        };
-
-        const createScan = async () => {
-          setCreateStatus(null);
-          const res = await fetch("/api/scans", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({
-              target_url: target,
-              profile,
-              authorization_confirmed: authorized,
-              in_scope_urls: scope.split(",").map(s => s.trim()).filter(Boolean),
-              exclusions: exclusions.split(",").map(s => s.trim()).filter(Boolean)
-            })
-          });
-          const data = await res.json();
-          if (res.ok) {
-            setCreateStatus({ kind: "ok", text: `Created scan #${data.id}.` });
-            setScanId(String(data.id));
-            setScanData(null);
-            refreshScans();
-          } else {
-            setCreateStatus({ kind: "danger", text: `Create error: ${safeJson(data)}` });
-          }
-        };
-
-        const fetchScan = async () => {
-          const res = await fetch(`/api/scans/${scanId}`, { headers: authHeaders() });
-          const data = await res.json();
-          setScanData(data);
-        };
-
-        const watchScan = () => {
-          if (wsRef.current) wsRef.current.close();
-          const proto = location.protocol === "https:" ? "wss" : "ws";
-          const ws = new WebSocket(`${proto}://${location.host}/api/scans/ws/${scanId}?token=${encodeURIComponent(token)}`);
-          wsRef.current = ws;
-          ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.error) {
-              setStreamStatus({ kind: "danger", text: data.error });
-              return;
-            }
-            setStreamStatus({ kind: "warn", text: `Scan #${data.id}: ${data.status} (${data.updated_at})` });
-            refreshScans(true);
-          };
-          ws.onerror = () => setStreamStatus({ kind: "danger", text: "WebSocket error." });
-        };
-
-        const refreshScans = async (silent) => {
-          if (!isAuthed) return;
-          if (!silent) setLoadingScans(true);
-          try {
-            const res = await fetch("/api/scans", { headers: authHeaders() });
-            const data = await res.json();
-            if (res.ok) setScans(Array.isArray(data) ? data : []);
-          } finally {
-            if (!silent) setLoadingScans(false);
-          }
-        };
-
-        useEffect(() => {
-          refreshScans();
-          return () => { if (wsRef.current) wsRef.current.close(); };
-        }, [isAuthed]);
-
-        const canSubmit = isAuthed && target.trim() && authorized;
-
-        return h("div", null,
-          h("div", { className: "topbar" },
-            h("div", { className: "topbarInner" },
-              h("div", { className: "brand" },
-                h(LogoMark, { size: 30 }),
-                h("div", null,
-                  h("h1", null, "HyperScan"),
-                  h("p", null, "Authorized webapp vulnerability scanning dashboard")
-                )
-              ),
-              h("div", { className: "pill", title: isAuthed ? "Authenticated" : "Not authenticated" },
-                h("span", { className: "dot", style: { background: isAuthed ? "rgba(52,211,153,.95)" : "rgba(251,113,133,.90)", boxShadow: isAuthed ? "0 0 0 4px rgba(52,211,153,.18)" : "0 0 0 4px rgba(251,113,133,.16)" } }),
-                h("span", null, isAuthed ? "Token loaded" : "Not logged in"),
-                isAuthed ? h("span", { className: "kbd" }, "Bearer") : null
-              )
-            )
-          ),
-
-          h("div", { className: "container" },
-            h("div", { className: "alert warn" },
-              h("strong", null, "Ethical use only."),
-              " Scan only targets you own or have explicit written permission to test. This UI enforces an authorization checkbox, but you are responsible for lawful use."
-            ),
-
-            h("div", { className: "grid" },
-              h("div", { className: "stack" },
-                h("div", { className: "card" },
-                  h("div", { className: "cardHeader" },
-                    h("div", null,
-                      h("h2", null, "Start scan"),
-                      h("div", { className: "sub" }, "Create a new scan job. Use Quick for passive checks; Full/Custom may run active heuristics and external adapters if installed.")
-                    ),
-                    h("div", { className: "badge" }, "POST ", h("span", { className: "mono" }, "/api/scans"))
-                  ),
-                  h("div", { className: "row" },
-                    h("div", null,
-                      h("label", null, "Target URL"),
-                      h("input", { value: target, onChange: e => setTarget(e.target.value), placeholder: "https://example.com" })
-                    ),
-                    h("div", null,
-                      h("label", null, "Profile"),
-                      h("select", { value: profile, onChange: e => setProfile(e.target.value) },
-                        h("option", { value: "quick" }, "quick (passive)"),
-                        h("option", { value: "full" }, "full (active)"),
-                        h("option", { value: "custom" }, "custom")
-                      )
-                    )
-                  ),
-                  h("div", { className: "row" },
-                    h("div", null,
-                      h("label", null, "In-scope URLs (comma separated)"),
-                      h("textarea", { value: scope, onChange: e => setScope(e.target.value), placeholder: "https://example.com/app, https://example.com/api" })
-                    ),
-                    h("div", null,
-                      h("label", null, "Exclusions (comma separated)"),
-                      h("textarea", { value: exclusions, onChange: e => setExclusions(e.target.value), placeholder: "/logout, /admin/delete" })
-                    )
-                  ),
-                  h("div", { className: "alert" },
-                    h("label", { style: { display: "flex", alignItems: "center", gap: "10px", margin: 0, color: "var(--text)" } },
-                      h("input", { type: "checkbox", checked: authorized, onChange: e => setAuthorized(e.target.checked), style: { width: "18px", height: "18px", margin: 0 } }),
-                      h("span", null, "I confirm I have explicit written authorization for this target.")
-                    )
-                  ),
-                  h("div", { className: "btnRow" },
-                    h("button", { className: "primary", onClick: createScan, disabled: !canSubmit }, "Submit scan"),
-                    h("button", { onClick: () => refreshScans(false), disabled: !isAuthed }, loadingScans ? "Refreshing…" : "Refresh history"),
-                    h("button", { className: "danger", onClick: logout, disabled: !isAuthed }, "Logout")
-                  ),
-                  createStatus ? h("div", { className: `alert ${createStatus.kind || ""}` }, createStatus.text) : null,
-                  !isAuthed ? h("div", { className: "alert danger" }, "Login required before you can create scans.") : null,
-                  isAuthed && !authorized ? h("div", { className: "alert warn" }, "Authorization checkbox is required to submit a scan.") : null
-                ),
-
-                h("div", { className: "card" },
-                  h("div", { className: "cardHeader" },
-                    h("div", null,
-                      h("h2", null, "Scan details"),
-                      h("div", { className: "sub" }, "Load a scan by ID, watch live status over WebSocket, and open reports.")
-                    ),
-                    h("div", { className: "badge" }, "GET ", h("span", { className: "mono" }, "/api/scans/{id}"))
-                  ),
-                  h("div", { className: "row" },
-                    h("div", null,
-                      h("label", null, "Scan ID"),
-                      h("input", { value: scanId, onChange: e => setScanId(e.target.value), placeholder: "e.g. 1" })
-                    ),
-                    h("div", null,
-                      h("label", null, "Reports"),
-                      h("div", { className: "btnRow" },
-                        h("button", { onClick: fetchScan, disabled: !isAuthed || !scanId.trim() }, "Load JSON"),
-                        h("button", { onClick: watchScan, disabled: !isAuthed || !scanId.trim() }, "Watch live")
-                      )
-                    )
-                  ),
-                  streamStatus ? h("div", { className: `alert ${streamStatus.kind || ""}` }, streamStatus.text) : null,
-                  scanId ? h("div", { className: "btnRow" },
-                    h("a", { className: "badge", href: reportUrl("json"), target: "_blank", rel: "noreferrer" }, "Open JSON"),
-                    h("a", { className: "badge", href: reportUrl("html"), target: "_blank", rel: "noreferrer" }, "Open HTML"),
-                    h("a", { className: "badge", href: reportUrl("pdf"), target: "_blank", rel: "noreferrer" }, "Open PDF")
-                  ) : null,
-                  h("div", { className: "sep" }),
-                  h("div", { className: "stack" },
-                    h("div", { className: "badge" }, "Raw response preview"),
-                    h("pre", null, scanData ? safeJson(scanData) : "{\n  \"hint\": \"Load a scan to view its JSON response here.\"\n}")
-                  )
-                )
-              ),
-
-              h("div", { className: "stack" },
-                h("div", { className: "card" },
-                  h("div", { className: "cardHeader" },
-                    h("div", null,
-                      h("h2", null, "Authentication"),
-                      h("div", { className: "sub" }, "Create an account and login to get a JWT. The token stays in localStorage on this device.")
-                    ),
-                    h("div", { className: "badge" }, "POST ", h("span", { className: "mono" }, "/api/auth/login"))
-                  ),
-                  h("div", { className: "stack" },
-                    h("div", null,
-                      h("label", null, "Email"),
-                      h("input", { value: email, onChange: e => setEmail(e.target.value), placeholder: "you@example.com" })
-                    ),
-                    h("div", null,
-                      h("label", null, "Password"),
-                      h("input", { value: password, onChange: e => setPassword(e.target.value), type: "password", placeholder: "••••••••" })
-                    ),
-                    h("div", { className: "btnRow" },
-                      h("button", { onClick: register, disabled: !email.trim() || !password }, "Register"),
-                      h("button", { className: "primary", onClick: login, disabled: !email.trim() || !password }, "Login")
-                    ),
-                    authStatus ? h("div", { className: `alert ${authStatus.kind || ""}` }, authStatus.text) : null
-                  )
-                ),
-
-                h("div", { className: "card" },
-                  h("div", { className: "cardHeader" },
-                    h("div", null,
-                      h("h2", null, "Scan history"),
-                      h("div", { className: "sub" }, "Your recent scans. Click a row to load that scan ID.")
-                    ),
-                    h("div", { className: "badge" }, "GET ", h("span", { className: "mono" }, "/api/scans"))
-                  ),
-                  !isAuthed ? h("div", { className: "alert danger" }, "Login to view your scan history.") : null,
-                  isAuthed && scans.length === 0 ? h("div", { className: "alert" }, "No scans yet. Create one on the left.") : null,
-                  isAuthed && scans.length > 0 ? h("table", { className: "table" },
-                    h("thead", null,
-                      h("tr", null,
-                        h("th", null, "ID"),
-                        h("th", null, "Target"),
-                        h("th", null, "Status"),
-                        h("th", null, "Updated")
-                      )
-                    ),
-                    h("tbody", null,
-                      scans.slice(0, 15).map(s => {
-                        const b = statusBadge(s.status);
-                        return h("tr", {
-                          key: s.id,
-                          style: { cursor: "pointer" },
-                          onClick: () => { setScanId(String(s.id)); setStreamStatus(null); setScanData(null); }
-                        },
-                          h("td", null, h("span", { className: "kbd" }, String(s.id))),
-                          h("td", null, h("span", { className: "mono" }, String(s.target_url || ""))),
-                          h("td", null, h("span", { className: `badge ${b.cls}` }, b.label)),
-                          h("td", null, h("span", { className: "mono", style: { color: "var(--muted)" } }, String(s.updated_at || "")))
-                        );
-                      })
-                    )
-                  ) : null
-                ),
-
-                h("div", { className: "alert" },
-                  h("strong", null, "Tip:"),
-                  " open API docs at ",
-                  h("a", { href: "/docs", target: "_blank", rel: "noreferrer" }, "/docs"),
-                  " and keep scan concurrency reasonable to avoid accidental DoS."
-                )
-              )
-            )
-          )
-        );
+        const response = await fetch("/api/scans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+          $("scanId").value = String(data.id);
+          setMessage("createMessage", "ok", `Created scan #${data.id}.`);
+          renderReportLinks();
+          refreshHistory(true);
+        } else {
+          setMessage("createMessage", "danger", `Create error: ${safeJson(data)}`);
+        }
       }
-      ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+
+      async function loadScan() {
+        clearMessage("streamMessage");
+        const scanId = $("scanId").value.trim();
+        if (!isAuthed() || !scanId) {
+          setMessage("streamMessage", "danger", "Login and scan ID are required.");
+          return;
+        }
+        const response = await fetch(`/api/scans/${encodeURIComponent(scanId)}`, { headers: authHeaders() });
+        const data = await response.json().catch(() => ({}));
+        $("rawJson").textContent = safeJson(data);
+        renderFindings(response.ok ? data : null);
+        renderReportLinks();
+      }
+
+      function watchScan() {
+        const scanId = $("scanId").value.trim();
+        if (!isAuthed() || !scanId) {
+          setMessage("streamMessage", "danger", "Login and scan ID are required.");
+          return;
+        }
+        if (ws) ws.close();
+        const protocol = location.protocol === "https:" ? "wss" : "ws";
+        ws = new WebSocket(`${protocol}://${location.host}/api/scans/ws/${encodeURIComponent(scanId)}?token=${encodeURIComponent(token())}`);
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.error) {
+            setMessage("streamMessage", "danger", data.error);
+            return;
+          }
+          setMessage("streamMessage", "warn", `Scan #${data.id}: ${data.status} (${data.updated_at})`);
+          refreshHistory(true);
+        };
+        ws.onerror = () => setMessage("streamMessage", "danger", "WebSocket error.");
+      }
+
+      function updateProfileHelp() {
+        $("profileHelp").textContent = profileDetails[$("profile").value] || "";
+      }
+
+      $("profile").addEventListener("change", updateProfileHelp);
+      $("register").addEventListener("click", register);
+      $("login").addEventListener("click", login);
+      $("logout").addEventListener("click", logout);
+      $("createScan").addEventListener("click", createScan);
+      $("refreshHistory").addEventListener("click", () => refreshHistory(false));
+      $("loadScan").addEventListener("click", loadScan);
+      $("watchScan").addEventListener("click", watchScan);
+      $("scanId").addEventListener("input", renderReportLinks);
+
+      updateProfileHelp();
+      updateAuthUi();
+      renderReportLinks();
+      renderFindings(null);
+      refreshHistory(true);
     </script>
   </body>
 </html>
