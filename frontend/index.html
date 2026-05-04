@@ -12,7 +12,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main style="min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #0b0f19; color: #e5eefc; font-family: Inter, system-ui, sans-serif;">
+        <section style="max-width: 560px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 24px; background: rgba(255,255,255,.04);">
+          <h1 style="margin: 0 0 10px; font-size: 20px;">HyperScan frontend needs a web server</h1>
+          <p style="margin: 0; line-height: 1.6; color: #9fb0c8;">
+            Do not open this file directly. Run <code>npm run dev</code> from the frontend folder and open
+            <code>http://localhost:5173</code>, or run Docker Compose and open <code>http://localhost:8000</code>.
+          </p>
+        </section>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -158,6 +158,8 @@ http://localhost:5173
 
 The Vite dev server proxies `/api/*` requests to `http://localhost:8000`.
 
+Do not open `frontend/index.html` directly from the file system. Vite needs a web server so it can load and transform the React/TypeScript entry point.
+
 ## API Examples
 
 ### Register
