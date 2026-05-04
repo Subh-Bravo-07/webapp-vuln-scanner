@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from app.api.auth import router as auth_router
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -23,5 +25,11 @@ app.include_router(reports_router, prefix="/api")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
+backend_root = Path(__file__).resolve().parents[1]
+repo_root = backend_root.parent
+frontend_dir = backend_root / "frontend"
+local_dist_dir = repo_root / "frontend" / "dist"
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+static_frontend_dir = frontend_dir if (frontend_dir / "index.html").exists() else local_dist_dir
+if (static_frontend_dir / "index.html").exists():
+    app.mount("/", StaticFiles(directory=static_frontend_dir, html=True), name="frontend")

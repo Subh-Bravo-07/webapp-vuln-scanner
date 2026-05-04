@@ -30,7 +30,7 @@ Use this tool only on systems you own or have explicit written permission to tes
 ### Frontend
 
 - Vite + React + TypeScript dashboard.
-- Self-contained backend-served fallback console at `backend/frontend/index.html`.
+- React production build served by FastAPI from the backend image.
 - Tailwind CSS styling.
 - Register/login form.
 - Authorized target submission.
@@ -42,7 +42,7 @@ Use this tool only on systems you own or have explicit written permission to tes
 - WebSocket-based live scan status.
 - Report links for JSON, HTML, and PDF exports.
 
-The backend fallback console does not depend on CDN-hosted React. It provides the core scanner workflows directly from the FastAPI static mount, including auth, scan creation, history, live status, report links, and escaped findings rendering.
+The React dashboard is the single frontend source of truth. During Docker builds, `frontend/` is compiled with Vite and copied into the backend image so FastAPI can serve the same UI from `http://localhost:8000`.
 
 ### Scanner Engine
 
@@ -107,7 +107,6 @@ The frontend can also parse a loaded scan response and display findings directly
 │   │   ├── scanner/          # Engine and modules
 │   │   ├── schemas/          # Pydantic request/response models
 │   │   └── tasks/            # Celery worker task
-│   ├── frontend/             # Static fallback frontend served by backend image
 │   ├── tests/
 │   ├── Dockerfile
 │   └── requirements.txt
@@ -132,11 +131,14 @@ docker compose up --build
 Services:
 
 - API: `http://localhost:8000`
+- Backend-served dashboard: `http://localhost:8000`
 - API docs: `http://localhost:8000/docs`
 - PostgreSQL: `localhost:5432`
 - Redis: `localhost:6379`
 
 The API and worker read environment values from `backend/.env.example` in the current compose setup.
+
+The Docker image builds the React dashboard from `frontend/` and copies `frontend/dist` into the backend image. For frontend development, use the Vite dev server below.
 
 ### Frontend Development Server
 
@@ -318,13 +320,13 @@ Near-term:
 - ~~Target validation errors return clean API responses instead of 500s.~~
 - ~~HTML report rendering escapes scanner-controlled content.~~
 - ~~`sqlmap` writes to a temporary per-run output directory.~~
-- ~~Backend Docker image includes the static frontend fallback folder.~~
+- ~~Backend Docker image serves the compiled React frontend.~~
 - ~~Add passive technology fingerprinting.~~
 - ~~Add passive sensitive data exposure heuristics.~~
 - ~~Add passive CSRF form heuristics.~~
 - ~~Show scan profile descriptions and module coverage in the dashboard.~~
 - ~~Display loaded scan findings in the dashboard with severity summary and remediation.~~
-- ~~Redesign the backend-served fallback console without external frontend dependencies.~~
+- ~~Use the React dashboard as the single frontend source of truth.~~
 - ~~Add focused unit tests for passive scanner module logic.~~
 - Module selection for the `custom` profile.
 - Better scan progress events with per-module status.
